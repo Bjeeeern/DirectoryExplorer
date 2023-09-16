@@ -1,8 +1,10 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
+﻿using DirectoryExplorer.Entities;
+using DirectoryExplorer.Primitives;
+using DirectoryExplorer.Utility;
+using DirectoryExplorer.Utility.Extensions;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using SharpDX;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,24 +19,39 @@ namespace DirectoryExplorer
         private GraphicsDeviceManager graphicsDeviceManager;
 
         private List<IEntity> Entities;
+        private Dictionary<string, Texture2D> TextureDict;
 
         public Game()
         {
             graphicsDeviceManager = new GraphicsDeviceManager(this);
+
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
         }
 
         protected override void Initialize()
         {
-            Entities = new List<IEntity>
-            {
-                new PlayerBall(),
-                new Ball(),
-                new Ball(),
-                new Ball(),
-                new Ball(),
-            };
+            graphicsDeviceManager.IsFullScreen = false;
+            graphicsDeviceManager.PreferredBackBufferWidth = 1920;
+            graphicsDeviceManager.PreferredBackBufferHeight = 1080;
+            graphicsDeviceManager.ApplyChanges();
+
+            Entities = Builder
+                .Build<Ball>(6)
+                .Add<PlayerBall>()
+                .ToList();
+
+            var seed = Random.Shared;
+            Entities
+                .Where(x => x is IPositioned)
+                .Do<IPositioned>(x => x.Pos =
+                    new Vector2(
+                        graphicsDeviceManager.PreferredBackBufferWidth,
+                        graphicsDeviceManager.PreferredBackBufferHeight) * 0.5f)
+                .Where(x => x is not IPlayer)
+                .Do<IPositioned>(x => x.Pos +=
+                    seed.NextUnitSquareVector2() * new Vector2(200.0f, 100.0f))
+                .Enumerate();
 
             base.Initialize();
         }
@@ -43,8 +60,14 @@ namespace DirectoryExplorer
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            TextureDict = Entities
+                .Where(x => x is ISprite)
+                .Cast<ISprite>()
+                .DistinctBy(x => x.TextureName)
+                .ToDictionary(x => x.TextureName, x => Content.Load<Texture2D>(x.TextureName));
+
             Entities
-                .IfDo<Ball>(x => x.Texture = Content.Load<Texture2D>("ball"))
+                .IfDo<ISprite>(x => x.Pos -= TextureDict[x.TextureName].Bounds.Size.ToVector2() * 0.5f)
                 .Enumerate();
         }
 
@@ -72,12 +95,10 @@ namespace DirectoryExplorer
                 .Direction = direction;
 
             var seed = new Random(gameTime.TotalGameTime.Seconds);
-            foreach (var body in Entities
+            Entities
                 .Where(x => x is not IPlayer && x is IMovable)
-                .Cast<IMovable>())
-            {
-                body.Direction = new Vector2(seed.NextFloat(-1.0f, 1.0f), seed.NextFloat(-1.0f, 1.0f));
-            }
+                .Do<IMovable>(x => x.Direction = seed.NextUnitVector2())
+                .Enumerate();
 
             var time = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -93,64 +114,14 @@ namespace DirectoryExplorer
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             spriteBatch.Begin();
-            
+
             Entities
-                .IfDo<ISprite>(x => spriteBatch.Draw(x.Texture, x.Pos, Color.White))
+                .IfDo<ISprite>(x => spriteBatch.Draw(TextureDict[x.TextureName], x.Pos, x.Color))
                 .Enumerate();
 
             spriteBatch.End();
 
             base.Draw(gameTime);
         }
-    }
-
-    class PlayerBall : Ball, IPlayer
-    {
-    }
-
-    class Ball : IBody, ISprite, IEntity
-    {
-        public Texture2D Texture { get; set; }
-        public Vector2 Pos { get; set; }
-        public float Speed { get; set; } = 100.0f;
-        public Vector2 Direction { get; set; }
-    }
-
-    interface IPlayer
-    {
-    }
-
-    interface IBody : IPositioned, IMovable
-    {
-    }
-
-    internal interface ISprite : IPositioned
-    {
-        Texture2D Texture { get; set; }
-    }
-
-    internal interface IMovable
-    {
-        public float Speed { get; set; }
-        public Vector2 Direction { get; set; }
-    }
-
-    internal interface IPositioned
-    {
-        public Vector2 Pos { get; set; }
-    }
-
-    internal interface IEntity
-    {
-    }
-
-    static class IEnumerableExtensions
-    {
-        public static IEnumerable<IEntity> IfDo<T>(this IEnumerable<IEntity> list, Action<T> action) where T: class =>
-            list.Select(e => {
-                if (e is T) action(e as T);
-                return e;
-            });
-        public static void Enumerate(this IEnumerable<IEntity> list) => list.Count();
     }
 }
