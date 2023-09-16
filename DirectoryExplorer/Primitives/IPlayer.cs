@@ -1,6 +1,6 @@
 ﻿namespace DirectoryExplorer.Primitives
 {
-    interface IPlayer
+    interface IPlayer : IEntity
     {
     }
 }

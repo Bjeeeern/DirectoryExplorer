@@ -4,7 +4,7 @@ using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace DirectoryExplorer.Entities
 {
-    class Ball : IBody, ISprite, IEntity
+    class Ball : IBody, ISprite
     {
         public string TextureName { get; set; } = "ball";
         public Color Color { get; set; } = Color.White;

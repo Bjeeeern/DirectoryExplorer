@@ -43,14 +43,13 @@ namespace DirectoryExplorer
 
             var seed = Random.Shared;
             Entities
-                .Where(x => x is IPositioned)
-                .Do<IPositioned>(x => x.Pos =
+                .IfDo<IPositioned>(x => x.Pos =
                     new Vector2(
                         graphicsDeviceManager.PreferredBackBufferWidth,
                         graphicsDeviceManager.PreferredBackBufferHeight) * 0.5f)
-                .Where(x => x is not IPlayer)
-                .Do<IPositioned>(x => x.Pos +=
-                    seed.NextUnitSquareVector2() * new Vector2(200.0f, 100.0f))
+                .WhereDo<IPositioned>(
+                    x => x is not IPlayer,
+                    x => x.Pos += seed.NextUnitSquareVector2() * new Vector2(200.0f, 100.0f))
                 .Enumerate();
 
             base.Initialize();
@@ -65,6 +64,8 @@ namespace DirectoryExplorer
                 .Cast<ISprite>()
                 .DistinctBy(x => x.TextureName)
                 .ToDictionary(x => x.TextureName, x => Content.Load<Texture2D>(x.TextureName));
+
+            // TODO: Use text and make read folder service
 
             Entities
                 .IfDo<ISprite>(x => x.Pos -= TextureDict[x.TextureName].Bounds.Size.ToVector2() * 0.5f)
@@ -88,21 +89,16 @@ namespace DirectoryExplorer
                     (keyboardState.IsKeyDown(Keys.Down) ? 1 : 0),
             };
 
-            Entities
-                .Where(x => x is IPlayer && x is IMovable)
-                .Cast<IMovable>()
-                .Single()
-                .Direction = direction;
-
             var seed = new Random(gameTime.TotalGameTime.Seconds);
-            Entities
-                .Where(x => x is not IPlayer && x is IMovable)
-                .Do<IMovable>(x => x.Direction = seed.NextUnitVector2())
-                .Enumerate();
-
             var time = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             Entities
+                .WhereDo<IMovable>(
+                    x => x is IPlayer,
+                    x => x.Direction = direction)
+                .WhereDo<IMovable>(
+                    x => x is not IPlayer,
+                    x => x.Direction = seed.NextUnitVector2())
                 .IfDo<IBody>(x => x.Pos += x.Direction * x.Speed * time)
                 .Enumerate();
 

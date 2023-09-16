@@ -7,20 +7,17 @@ namespace DirectoryExplorer.Utility.Extensions
 {
     static class IEnumerableExtensions
     {
-        public static IEnumerable<IEntity> WhereDo<T>(this IEnumerable<IEntity> enumerable, Action<T> action) where T : class =>
-            throw new NotImplementedException();
+        public static IEnumerable<IEntity> WhereDo<T>(this IEnumerable<IEntity> enumerable, Func<T, bool> test, Action<T> action) where T : class =>
+            enumerable.Select(e =>
+            {
+                if (e is T t && test(t)) action(t);
+                return e;
+            });
 
         public static IEnumerable<IEntity> IfDo<T>(this IEnumerable<IEntity> enumerable, Action<T> action) where T : class =>
             enumerable.Select(e =>
             {
-                if (e is T) action(e as T);
-                return e;
-            });
-
-        public static IEnumerable<IEntity> Do<T>(this IEnumerable<IEntity> enumerable, Action<T> action) where T : class =>
-            enumerable.Select(e =>
-            {
-                action(e as T);
+                if (e is T t) action(t);
                 return e;
             });
 
