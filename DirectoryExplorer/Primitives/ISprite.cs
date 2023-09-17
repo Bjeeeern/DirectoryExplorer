@@ -2,9 +2,8 @@
 
 namespace DirectoryExplorer.Primitives
 {
-    internal interface ISprite : IPositioned
+    internal interface ISprite : IPositioned, ITintend
     {
         string TextureName { get; set; }
-        Color Color { get; set; }
     }
 }

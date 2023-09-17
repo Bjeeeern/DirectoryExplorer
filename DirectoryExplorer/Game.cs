@@ -20,6 +20,7 @@ namespace DirectoryExplorer
 
         private List<IEntity> Entities;
         private Dictionary<string, Texture2D> TextureDict;
+        private Dictionary<string, SpriteFont> FontDict;
 
         public Game()
         {
@@ -38,6 +39,7 @@ namespace DirectoryExplorer
 
             Entities = Builder
                 .Build<Ball>(6)
+                .Add<Text>(6)
                 .Add<PlayerBall>()
                 .ToList();
 
@@ -50,6 +52,7 @@ namespace DirectoryExplorer
                 .WhereDo<IPositioned>(
                     x => x is not IPlayer,
                     x => x.Pos += seed.NextUnitSquareVector2() * new Vector2(200.0f, 100.0f))
+                .IfDo<IText>(x => x.Text = string.Concat(Enumerable.Range(0, seed.Next(5, 10)).Select(x => (char)seed.Next('a', 'z'))))
                 .Enumerate();
 
             base.Initialize();
@@ -60,12 +63,13 @@ namespace DirectoryExplorer
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             TextureDict = Entities
-                .Where(x => x is ISprite)
-                .Cast<ISprite>()
+                .Only<ISprite>()
                 .DistinctBy(x => x.TextureName)
-                .ToDictionary(x => x.TextureName, x => Content.Load<Texture2D>(x.TextureName));
+                .ToDictionary(x => x.TextureName, x => Content.Load<Texture2D>($"images/{x.TextureName}"));
 
-            // TODO: Use text and make read folder service
+            FontDict = new() {
+                { "default", Content.Load<SpriteFont>("fonts/default") }
+            };
 
             Entities
                 .IfDo<ISprite>(x => x.Pos -= TextureDict[x.TextureName].Bounds.Size.ToVector2() * 0.5f)
@@ -113,6 +117,7 @@ namespace DirectoryExplorer
 
             Entities
                 .IfDo<ISprite>(x => spriteBatch.Draw(TextureDict[x.TextureName], x.Pos, x.Color))
+                .IfDo<IText>(x => spriteBatch.DrawString(FontDict[x.SpriteFont], x.Text, x.Pos, x.Color))
                 .Enumerate();
 
             spriteBatch.End();
