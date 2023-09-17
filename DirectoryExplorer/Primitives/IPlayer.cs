@@ -2,5 +2,6 @@
 {
     interface IPlayer : IEntity
     {
+        string CurrentDirectory { get; }
     }
 }

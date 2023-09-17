@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using Color = Microsoft.Xna.Framework.Color;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
@@ -37,22 +38,21 @@ namespace DirectoryExplorer
             graphicsDeviceManager.PreferredBackBufferHeight = 1080;
             graphicsDeviceManager.ApplyChanges();
 
+            // TODO: Create a directory explorer service
+            Services.AddService<IDirectoryExplorer>(new DirectoryExplorer());
+
+            var dirExplorer = Services.GetService<IDirectoryExplorer>();
+
             Entities = Builder
-                .Build<Ball>(6)
-                .Add<Text>(6)
-                .Add<PlayerBall>()
+                .Build<Player>()
+                .Concat(dirExplorer.BuildEntitiesFromPath("."))
                 .ToList();
 
             var seed = Random.Shared;
+            var offset = 0;
             Entities
-                .IfDo<IPositioned>(x => x.Pos =
-                    new Vector2(
-                        graphicsDeviceManager.PreferredBackBufferWidth,
-                        graphicsDeviceManager.PreferredBackBufferHeight) * 0.5f)
-                .WhereDo<IPositioned>(
-                    x => x is not IPlayer,
-                    x => x.Pos += seed.NextUnitSquareVector2() * new Vector2(200.0f, 100.0f))
-                .IfDo<IText>(x => x.Text = string.Concat(Enumerable.Range(0, seed.Next(5, 10)).Select(x => (char)seed.Next('a', 'z'))))
+                .IfDo<IText>(
+                    x => x.Pos += new Vector2(200.0f, 100.0f + (offset++ * 20.0f)))
                 .Enumerate();
 
             base.Initialize();
@@ -117,12 +117,28 @@ namespace DirectoryExplorer
 
             Entities
                 .IfDo<ISprite>(x => spriteBatch.Draw(TextureDict[x.TextureName], x.Pos, x.Color))
-                .IfDo<IText>(x => spriteBatch.DrawString(FontDict[x.SpriteFont], x.Text, x.Pos, x.Color))
+                .IfDo<IText>(x => spriteBatch.DrawString(FontDict[x.SpriteFont], x.Content, x.Pos, x.Color))
                 .Enumerate();
 
             spriteBatch.End();
 
             base.Draw(gameTime);
         }
+    }
+
+    class DirectoryExplorer : IDirectoryExplorer
+    {
+        public IEnumerable<IEntity> BuildEntitiesFromPath(string path) =>
+            Directory.Exists(path)
+                ? Directory.EnumerateDirectories(path)
+                    .Append(Directory.GetCurrentDirectory())
+                    .Concat(Directory.EnumerateFiles(path))
+                    .Select(x => new Text { Content = x })
+                : Enumerable.Empty<IEntity>();
+    }
+
+    internal interface IDirectoryExplorer
+    {
+        IEnumerable<IEntity> BuildEntitiesFromPath(string path);
     }
 }

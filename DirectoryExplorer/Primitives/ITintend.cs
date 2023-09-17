@@ -2,7 +2,7 @@
 
 namespace DirectoryExplorer.Primitives
 {
-    internal interface ITintend
+    internal interface ITintend : IEntity
     {
         Color Color { get; set; }
     }

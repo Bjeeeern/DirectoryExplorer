@@ -3,8 +3,8 @@ using Color = Microsoft.Xna.Framework.Color;
 
 namespace DirectoryExplorer.Entities
 {
-    class PlayerBall : Ball, IPlayer
+    class Player : IPlayer
     {
-        new public Color Color { get; set; } = Color.Yellow;
+        public string CurrentDirectory { get; set; } = ".";
     }
 }

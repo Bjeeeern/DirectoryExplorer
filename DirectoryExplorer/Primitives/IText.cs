@@ -2,7 +2,7 @@
 {
     internal interface IText : IPositioned, ITintend
     {
-        string Text { get; set; }
+        string Content { get; set; }
         string SpriteFont { get; set; }
     }
 }
