@@ -2,13 +2,13 @@
 using DirectoryExplorer.Primitives;
 using DirectoryExplorer.Utility;
 using DirectoryExplorer.Utility.Extensions;
+using DirectoryExplorer.Services.Interfaces;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.IO;
 using Color = Microsoft.Xna.Framework.Color;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
@@ -38,8 +38,7 @@ namespace DirectoryExplorer
             graphicsDeviceManager.PreferredBackBufferHeight = 1080;
             graphicsDeviceManager.ApplyChanges();
 
-            // TODO: Create a directory explorer service
-            Services.AddService<IDirectoryExplorer>(new DirectoryExplorer());
+            Services.AddService<IDirectoryExplorer>(new Services.Providers.DirectoryExplorer());
 
             var dirExplorer = Services.GetService<IDirectoryExplorer>();
 
@@ -48,12 +47,14 @@ namespace DirectoryExplorer
                 .Concat(dirExplorer.BuildEntitiesFromPath("."))
                 .ToList();
 
-            var seed = Random.Shared;
-            var offset = 0;
-            Entities
-                .IfDo<IText>(
-                    x => x.Pos += new Vector2(200.0f, 100.0f + (offset++ * 20.0f)))
-                .Enumerate();
+            // TODO: Cleanup, especially of camera abstraction
+            var camera = Entities.Single(x => x is ICamera && x is IPlayer) as ICamera;
+
+            // TODO: Use helper functions instead
+            var t = camera.Transform;
+            t.M41 = graphicsDeviceManager.PreferredBackBufferWidth * 0.5f;
+            t.M42 = graphicsDeviceManager.PreferredBackBufferHeight * 0.5f;
+            camera.Transform = t;
 
             base.Initialize();
         }
@@ -67,22 +68,19 @@ namespace DirectoryExplorer
                 .DistinctBy(x => x.TextureName)
                 .ToDictionary(x => x.TextureName, x => Content.Load<Texture2D>($"images/{x.TextureName}"));
 
+            TextureDict["line"] = new Texture2D(GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
+            TextureDict["line"].SetData(new []{ Color.White }, 0, 1);
+
             FontDict = new() {
                 { "default", Content.Load<SpriteFont>("fonts/default") }
             };
-
-            Entities
-                .IfDo<ISprite>(x => x.Pos -= TextureDict[x.TextureName].Bounds.Size.ToVector2() * 0.5f)
-                .Enumerate();
         }
 
         protected override void Update(GameTime gameTime)
         {
-            var gamePadState = GamePad.GetState(PlayerIndex.One);
             var keyboardState = Keyboard.GetState();
 
-            if (gamePadState.Buttons.Back == ButtonState.Pressed ||
-                keyboardState.IsKeyDown(Keys.Escape))
+            if (keyboardState.IsKeyDown(Keys.Escape))
                 Exit();
 
             var direction = new Vector2
@@ -97,12 +95,16 @@ namespace DirectoryExplorer
             var time = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             Entities
-                .WhereDo<IMovable>(
+                .WhereDo<ICamera>(
                     x => x is IPlayer,
-                    x => x.Direction = direction)
-                .WhereDo<IMovable>(
-                    x => x is not IPlayer,
-                    x => x.Direction = seed.NextUnitVector2())
+                    x =>
+                    {
+                        // TODO: Use helper functions instead
+                        var t = x.Transform;
+                        t.M41 -= direction.X * 100.0f * time;
+                        t.M42 -= direction.Y * 100.0f * time;
+                        x.Transform = t;
+                    })
                 .IfDo<IBody>(x => x.Pos += x.Direction * x.Speed * time)
                 .Enumerate();
 
@@ -115,30 +117,39 @@ namespace DirectoryExplorer
 
             spriteBatch.Begin();
 
+            var camera = Entities.Single(x => x is ICamera && x is IPlayer) as ICamera;
+
             Entities
-                .IfDo<ISprite>(x => spriteBatch.Draw(TextureDict[x.TextureName], x.Pos, x.Color))
-                .IfDo<IText>(x => spriteBatch.DrawString(FontDict[x.SpriteFont], x.Content, x.Pos, x.Color))
+                .IfDo<IPolygon>(x => {
+                    var verts = x.Vertices
+                        .Select(y => Vector2.Transform(y, camera.Transform))
+                        .ToArray();
+
+                    for(int i = 0; i < verts.Length; i++) 
+                    {
+                        var n1 = verts[i];
+                        var n2 = verts[(i + 1) % verts.Length];
+
+                        spriteBatch.Draw(
+                            TextureDict["line"],
+                            new Rectangle(
+                                n1.ToPoint(),
+                                new Point((int)Vector2.Distance(n1, n2), 1)),
+                            null,
+                            x.Color,
+                            (n2 - n1).ToAngle(),
+                            new Vector2(0f, 0f),
+                            SpriteEffects.None,
+                            1.0f);
+                    }
+                })
+                .IfDo<ISprite>(x => spriteBatch.Draw(TextureDict[x.TextureName], Vector2.Transform(x.Pos, camera.Transform), x.Color))
+                .IfDo<IText>(x => spriteBatch.DrawString(FontDict[x.SpriteFont], x.Content, Vector2.Transform(x.Pos, camera.Transform), x.Color))
                 .Enumerate();
 
             spriteBatch.End();
 
             base.Draw(gameTime);
         }
-    }
-
-    class DirectoryExplorer : IDirectoryExplorer
-    {
-        public IEnumerable<IEntity> BuildEntitiesFromPath(string path) =>
-            Directory.Exists(path)
-                ? Directory.EnumerateDirectories(path)
-                    .Append(Directory.GetCurrentDirectory())
-                    .Concat(Directory.EnumerateFiles(path))
-                    .Select(x => new Text { Content = x })
-                : Enumerable.Empty<IEntity>();
-    }
-
-    internal interface IDirectoryExplorer
-    {
-        IEnumerable<IEntity> BuildEntitiesFromPath(string path);
     }
 }

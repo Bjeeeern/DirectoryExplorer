@@ -1,10 +1,12 @@
 ﻿using DirectoryExplorer.Primitives;
-using Color = Microsoft.Xna.Framework.Color;
+using Microsoft.Xna.Framework;
 
 namespace DirectoryExplorer.Entities
 {
-    class Player : IPlayer
+    class Player : IPlayer, ICamera, IRoomTracker
     {
         public string CurrentDirectory { get; set; } = ".";
+
+        public Matrix Transform { get; set; } = Matrix.Identity;
     }
 }

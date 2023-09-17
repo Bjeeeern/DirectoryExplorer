@@ -22,6 +22,13 @@ namespace DirectoryExplorer.Utility.Extensions
                 return e;
             });
 
+        public static IEnumerable<T> Do<T>(this IEnumerable<T> enumerable, Action<T> action) where T : class =>
+            enumerable.Select(e =>
+            {
+                action(e);
+                return e;
+            });
+
         public static IEnumerable<T> Only<T>(this IEnumerable<IEntity> enumerable) where T : class =>
             enumerable
                 .Where(e => e is T)

@@ -1,7 +1,6 @@
 ﻿namespace DirectoryExplorer.Primitives
 {
-    interface IPlayer : IEntity
+    internal interface IPlayer: IEntity
     {
-        string CurrentDirectory { get; }
     }
 }
