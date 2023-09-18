@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DirectoryExplorer.Primitives
 {
-    internal interface ICamera: IEntity
+    internal interface ICamera: IEntity, IMovable
     {
         Matrix Transform { get; set; }
     }

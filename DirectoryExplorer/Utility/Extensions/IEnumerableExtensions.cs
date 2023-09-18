@@ -50,5 +50,8 @@ namespace DirectoryExplorer.Utility.Extensions
         {
             while (count-- != 0) yield return new T();
         }
+
+        public static T Get<T>(this IEnumerable<IEntity> enumerable) where T : class, IEntity =>
+            enumerable.Single(x => x is T) as T;
     }
 }
