@@ -2,12 +2,18 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using DirectoryExplorer.Entities;
 using DirectoryExplorer.Primitives;
 
 namespace DirectoryExplorer.Utility.Extensions
 {
     static class IEnumerableExtensions
     {
+        public static IEnumerable<T> Where<T>(this IEnumerable<IEntity> enumerable) where T : class =>
+            enumerable
+                .Where(e => e is T)
+                .Cast<T>();
+
         public static IEnumerable<IEntity> WhereDo<T>(this IEnumerable<IEntity> enumerable, Func<T, bool> test, Action<T> action) where T : class =>
             enumerable.Select(e =>
             {
@@ -29,11 +35,6 @@ namespace DirectoryExplorer.Utility.Extensions
                 return e;
             });
 
-        public static IEnumerable<T> Only<T>(this IEnumerable<IEntity> enumerable) where T : class =>
-            enumerable
-                .Where(e => e is T)
-                .Cast<T>();
-
         public static void Enumerate(this IEnumerable<IEntity> enumerable)
         {
             var enumerator = enumerable.GetEnumerator();
@@ -51,7 +52,11 @@ namespace DirectoryExplorer.Utility.Extensions
             while (count-- != 0) yield return new T();
         }
 
-        public static T Get<T>(this IEnumerable<IEntity> enumerable) where T : class, IEntity =>
-            enumerable.Single(x => x is T) as T;
+        public static IEnumerable<IEntity> BeginCamera(this IEnumerable<IEntity> enumerable, Action<IList<IEntity>> populator)
+        {
+            var camera = new Camera();
+            populator(camera.Children);
+            return enumerable.Concat(camera.Children.Append(camera));
+        }
     }
 }

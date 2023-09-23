@@ -2,5 +2,6 @@
 {
     internal interface IPlayer: IEntity
     {
+        ICamera? Camera { get; set; }
     }
 }

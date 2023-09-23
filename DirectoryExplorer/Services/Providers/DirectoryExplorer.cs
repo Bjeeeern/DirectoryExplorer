@@ -28,7 +28,7 @@ namespace DirectoryExplorer.Services.Providers
             var height = 20.0f * MathF.Min(fileCount, 10) + 40.0f + 500.0f;
 
             var subDir = Directory.EnumerateDirectories(path)
-                    .Select((x, i) => new File
+                    .Select((x, i) => new SubDirectory
                     {
                         Content = x.Length > 20 ? $"{x[0..15]}...{x[^6..^0]}" : x,
                         Pos = new Vector2(20.0f * i, height)

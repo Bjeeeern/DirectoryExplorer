@@ -10,5 +10,7 @@ namespace DirectoryExplorer.Primitives
     internal interface ICamera: IEntity, IMovable
     {
         Matrix Transform { get; set; }
+
+        IList<IEntity> Children { get; set; }
     }
 }
