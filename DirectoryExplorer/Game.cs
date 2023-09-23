@@ -86,9 +86,10 @@ namespace DirectoryExplorer
                     (keyboardState.IsAnyKeyDown(Keys.Down, Keys.S) ? 1 : 0),
             };
 
+            // TODO: Make camera follow player controlled ball.
             entities
                 .Where<IPlayer>()
-                .Do(x => x.Camera!.Direction = direction)
+                .Do(x => x.Camera.Direction = direction)
                 .Enumerate();
 
             var seed = new Random(gameTime.TotalGameTime.Seconds);
@@ -100,6 +101,13 @@ namespace DirectoryExplorer
                 .IfDo<IBody>(x =>
                     x.Pos += x.Direction * x.Speed * time)
                 .Enumerate();
+
+            entities
+                .AllInteractions()
+                .IfDo<IPolygon, IBody>((a, b) =>
+                {
+
+                });
 
             base.Update(gameTime);
         }
@@ -113,26 +121,20 @@ namespace DirectoryExplorer
                 spriteBatch.Begin(transformMatrix: cameraOffset * camera.Transform);
 
                 camera.Children
-                    .IfDo<IPolygon>(x =>
-                    {
-                        var verts = x.Vertices.ToArray();
-
-                        for (int i = 0; i < verts.Length; i++)
-                        {
-                            var n1 = verts[i];
-                            var n2 = verts[(i + 1) % verts.Length];
-
-                            spriteBatch.Draw(
-                                textureDict["line"],
-                                new Rectangle(n1.ToPoint(), (Vector2.UnitX * Vector2.Distance(n1, n2) + Vector2.UnitY).ToPoint()),
-                                null,
-                                x.Color,
-                                (n2 - n1).ToAngle(),
-                                Vector2.Zero,
-                                SpriteEffects.None,
-                                0.0f);
-                        }
-                    })
+                    .IfDo<IPolygon>(x => x
+                        .Vertices
+                            .ToLineSegments()
+                            .Do<Vector2, Vector2>((a, b) =>
+                                spriteBatch.Draw(
+                                    textureDict["line"],
+                                    new Rectangle(a.ToPoint(), (Vector2.UnitX * Vector2.Distance(a, b) + Vector2.UnitY).ToPoint()),
+                                    null,
+                                    x.Color,
+                                    (b - a).ToAngle(),
+                                    Vector2.Zero,
+                                    SpriteEffects.None,
+                                    0.0f))
+                             .Enumerate())
                     .IfDo<ISprite>(x => spriteBatch.Draw(textureDict[x.TextureName], x.Pos - textureDict[x.TextureName].Bounds.Size.ToVector2() * 0.5f, x.Color))
                     .IfDo<IText>(x => spriteBatch.DrawString(fontDict[x.SpriteFont], x.Content, x.Pos, x.Color))
                     .Enumerate();

@@ -1,5 +1,4 @@
 ﻿using DirectoryExplorer.Primitives;
-using Microsoft.Xna.Framework;
 
 namespace DirectoryExplorer.Entities
 {

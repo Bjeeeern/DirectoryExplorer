@@ -1,5 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DirectoryExplorer.Utility.Extensions
 {
@@ -9,5 +11,8 @@ namespace DirectoryExplorer.Utility.Extensions
         {
             return MathF.Atan2(vector.Y, vector.X);
         }
+
+        public static IEnumerable<(Vector2 A, Vector2 B)> ToLineSegments(this IEnumerable<Vector2> vertices) =>
+            vertices.Zip(vertices.Skip(1).Append(vertices.First()));
     }
 }

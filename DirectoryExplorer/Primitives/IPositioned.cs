@@ -2,7 +2,7 @@
 
 namespace DirectoryExplorer.Primitives
 {
-    internal interface IPositioned : IEntity
+    internal interface IPositioned : ICameraEntity
     {
         public Vector2 Pos { get; set; }
     }

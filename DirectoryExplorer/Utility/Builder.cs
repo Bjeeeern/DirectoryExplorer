@@ -16,8 +16,9 @@ namespace DirectoryExplorer.Utility
             var camera = new Camera();
             camera.Children = populator(Enumerable.Empty<IEntity>()).ToList();
 
-            var player = camera.Children.Where<IPlayer>().FirstOrDefault();
-            if (player != null) player.Camera = camera;
+            camera.Children
+                .IfDo<ICameraEntity>(x => x.Camera = camera)
+                .Enumerate();
 
             entities = entities.Append(camera).Concat(camera.Children);
 

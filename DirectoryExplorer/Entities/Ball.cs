@@ -9,7 +9,9 @@ namespace DirectoryExplorer.Entities
         public string TextureName { get; set; } = "ball";
         public Color Color { get; set; } = Color.White;
         public Vector2 Pos { get; set; }
+        public float Radius { get; set; } = 32.0f;
         public float Speed { get; set; } = 100.0f;
         public Vector2 Direction { get; set; }
+        public ICamera Camera { get; set; }
     }
 }
