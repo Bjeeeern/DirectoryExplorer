@@ -10,15 +10,17 @@ using System.Collections.Generic;
 using System.Linq;
 using Color = Microsoft.Xna.Framework.Color;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
+using DirectoryExplorer.Utility;
 
 namespace DirectoryExplorer
 {
+    // TODO: Move all gamecode to library project. (except DirectoryExplorer (DirectoryLoader?) implementation?)
     public class Game : Microsoft.Xna.Framework.Game
     {
         private SpriteBatch spriteBatch;
         private GraphicsDeviceManager graphicsDeviceManager;
 
-        private List<IEntity> entities;
+        private List<IEntity> entities = new List<IEntity>();
         private Dictionary<string, Texture2D> textureDict;
         private Dictionary<string, SpriteFont> fontDict;
         private Matrix cameraOffset;
@@ -42,12 +44,15 @@ namespace DirectoryExplorer
 
             var dirExplorer = Services.GetService<IDirectoryExplorer>();
 
-            entities = Enumerable.Empty<IEntity>()
-                .Add<Camera>()
-                .Add<Player>()
-                .Add<Ball>()
-                .Concat(dirExplorer.BuildEntitiesFromPath("."))
-                .ToList();
+            // TODO: Make nice again
+            entities
+                .Add(new Camera());
+            entities
+                .Add(new Player());
+            entities
+                .Add(new Ball());
+            entities
+                .AddRange(dirExplorer.BuildEntitiesFromPath(entities, "."));
 
             var camera = entities.Where<Camera>().Single();
             var player = entities.Where<Player>().Single();
@@ -105,8 +110,21 @@ namespace DirectoryExplorer
 
             entities
                 .AllInteractions()
+                .IfDo<ICircle, ITrigger>((C, T) =>
+                {
+                    var circleBoundingRect = new RectangleF(C.Pos - Vector2.One * C.Radius, Vector2.One * C.Radius * 2.0f);
+                    if (circleBoundingRect .Intersects(T.Area) && !T.Safety)
+                    {
+                        T.Action();
+                        T.Safety = true;
+                    } else
+                    {
+                        T.Safety = false;
+                    }
+                })
                 .IfDo<IPolygon, ICircle>((P, C) =>
                 {
+                    // TODO: Intersection utility with enums for all the cases?
                     P.Vertices
                         .ToLineSegments()
                         .Do((A, B) =>
@@ -161,6 +179,8 @@ namespace DirectoryExplorer
 
             entities
                 .IfDo<IPolygon>(x =>
+                    // TODO: Draw linesegment extension?
+                    //       https://github.com/craftworkgames/MonoGame.Extended/blob/develop/src/cs/MonoGame.Extended/VectorDraw/PrimitiveDrawing.cs ?
                     x.Vertices
                         .ToLineSegments()
                         .Do((a, b) =>
@@ -176,6 +196,7 @@ namespace DirectoryExplorer
                         .Enumerate())
                 .IfDo<ISprite>(x => spriteBatch.Draw(textureDict[x.TextureName], x.Pos - textureDict[x.TextureName].Bounds.Size.ToVector2() * 0.5f, x.Color))
                 .IfDo<IText>(x => spriteBatch.DrawString(fontDict[x.SpriteFont], x.Content, x.Pos, x.Color))
+                .IfDo<ITrigger>(x => spriteBatch.Draw(textureDict["line"], x.Area.ToRectangle(), null, new Color(x.Safety ? Color.Yellow : Color.Red, 0.2f)))
                 .Enumerate();
 
             spriteBatch.End();
