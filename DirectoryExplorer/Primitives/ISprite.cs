@@ -1,6 +1,4 @@
-﻿using Color = Microsoft.Xna.Framework.Color;
-
-namespace DirectoryExplorer.Primitives
+﻿namespace DirectoryExplorer.Primitives
 {
     internal interface ISprite : IPositioned, ITintend
     {

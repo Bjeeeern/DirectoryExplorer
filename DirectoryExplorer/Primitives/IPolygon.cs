@@ -1,8 +1,7 @@
-﻿using DirectoryExplorer.Primitives;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 
-namespace DirectoryExplorer.Entities
+namespace DirectoryExplorer.Primitives
 {
     internal interface IPolygon : IEntity, ITintend
     {

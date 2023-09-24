@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 namespace DirectoryExplorer.Entities
 {
-    internal class Room : IRoom
+    internal class Wall : IPolygon
     {
-        public IEnumerable<IPolygon> Walls { get; set; }
+        public IEnumerable<Vector2> Vertices { get; set; }
         public Color Color { get; set; } = Color.DarkOrchid;
     }
 }

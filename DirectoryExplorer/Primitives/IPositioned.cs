@@ -1,4 +1,4 @@
-﻿using Vector2 = Microsoft.Xna.Framework.Vector2;
+﻿using Microsoft.Xna.Framework;
 
 namespace DirectoryExplorer.Primitives
 {

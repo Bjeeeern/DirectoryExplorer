@@ -53,20 +53,37 @@ namespace DirectoryExplorer.Services.Providers
             var scale = new Vector2(width, height);
             var translate = new Vector2(-20.0f, -20.0f);
 
+            var room = new Room
+            {
+                Walls = new[] {
+                        new[] {
+                            new Vector2(0.4f, 0.0f),
+                            new Vector2(0.0f, 0.0f),
+                            new Vector2(0.0f, 1.0f),
+                            new Vector2(0.4f, 1.0f),
+                            new Vector2(0.0f, 1.0f),
+                            new Vector2(0.0f, 0.0f),
+                        },
+                        new[]
+                        {
+                            new Vector2(0.6f, 0.0f),
+                            new Vector2(1.0f, 0.0f),
+                            new Vector2(1.0f, 1.0f),
+                            new Vector2(0.6f, 1.0f),
+                            new Vector2(1.0f, 1.0f),
+                            new Vector2(1.0f, 0.0f),
+                        }
+                    }.Select(x => new Wall { Vertices = x.Select(y => y * scale + translate).ToList() })
+                    .ToList()
+            };
+
             return subDir
                 .Cast<IEntity>()
                 .Append(parentDir)
                 .Concat(subDir)
                 .Concat(files)
-                .Append(new Room
-                {
-                    Vertices = new[] {
-                        new Vector2(0.0f, 0.0f),
-                        new Vector2(1.0f, 0.0f),
-                        new Vector2(1.2f, 1.3f),
-                        new Vector2(0.0f, 1.0f),
-                    }.Select(x => x * scale + translate)
-                });
+                .Append(room)
+                .Concat(room.Walls);
         }
     }
 }

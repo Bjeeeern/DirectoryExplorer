@@ -121,21 +121,27 @@ namespace DirectoryExplorer
 
                             var det = b * b - 4 * a * c;
 
-                            if(det > 0.0f)
+                            if (det > 0.0f)
                             {
-                                var sqrt = MathF.Sqrt(det);
-                                var t1 = (-b + sqrt) / (2.0f * a);
-                                var t2 = (-b - sqrt) / (2.0f * a);
+                                var t = (-b / a) / 2.0f;
 
-                                var t = (t1 + t2) / 2.0f;
-                                var test = (2.0f * -b) / a;
+                                var r2 = C.Radius * C.Radius;
+                                var absA = Vector2.Dot(A, A);
+                                var absB = Vector2.Dot(A, A);
 
-                                var P = A + D * t;
+                                if ((0.0f <= t && t <= 1.0f) || absA <= r2 || absB <= r2)
+                                {
+                                    var P = 0.0f <= t && t <= 1.0f
+                                        ? A + D * t
+                                        : 0.0f <= t
+                                        ? B
+                                        : A;
 
-                                var d = C.Radius - MathF.Sqrt(Vector2.Dot(P, P));
-                                var N = Vector2.Normalize(P);
+                                    var d = C.Radius - MathF.Sqrt(Vector2.Dot(P, P));
+                                    var N = Vector2.Normalize(P);
 
-                                C.Pos -= N * d;
+                                    C.Pos -= N * d;
+                                }
                             }
                         })
                         .Enumerate();
