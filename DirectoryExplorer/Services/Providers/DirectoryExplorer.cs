@@ -12,6 +12,10 @@ namespace DirectoryExplorer.Services.Providers
 {
     class DirectoryExplorer : IDirectoryExplorer
     {
+        // TODO: Add trigger entities
+        // TODO: Separate directory service from room builder service
+        // TODO: Load DirectoryInfo, FileInfo, FileSystemInfo, DriveInfo etc. instead of strings.
+        // TODO: Make file more yellow depending on file age, and more bold depending on file size.
         public IEnumerable<IEntity> BuildEntitiesFromPath(string path)
         {
             if (!Directory.Exists(path)) return Enumerable.Empty<IEntity>();
@@ -59,7 +63,7 @@ namespace DirectoryExplorer.Services.Providers
                     Vertices = new[] {
                         new Vector2(0.0f, 0.0f),
                         new Vector2(1.0f, 0.0f),
-                        new Vector2(1.0f, 1.0f),
+                        new Vector2(1.2f, 1.3f),
                         new Vector2(0.0f, 1.0f),
                     }.Select(x => x * scale + translate)
                 });

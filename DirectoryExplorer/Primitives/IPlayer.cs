@@ -1,6 +1,7 @@
 ﻿namespace DirectoryExplorer.Primitives
 {
-    internal interface IPlayer: ICameraEntity
+    internal interface IPlayer : IEntity
     {
+        IMovable Target { get; set; }
     }
 }

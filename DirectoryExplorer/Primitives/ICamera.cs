@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace DirectoryExplorer.Primitives
 {
-    internal interface ICamera: IEntity, IMovable
+    internal interface ICamera: IEntity
     {
         Matrix Transform { get; set; }
 
-        IList<IEntity> Children { get; set; }
+        IPositioned Target { get; set; }
     }
 }

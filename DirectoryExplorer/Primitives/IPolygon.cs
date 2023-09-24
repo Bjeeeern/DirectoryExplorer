@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace DirectoryExplorer.Entities
 {
-    internal interface IPolygon : ICameraEntity, ITintend
+    internal interface IPolygon : IEntity, ITintend
     {
         IEnumerable<Vector2> Vertices { get; set; }
     }

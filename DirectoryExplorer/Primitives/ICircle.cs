@@ -1,6 +1,6 @@
 ﻿namespace DirectoryExplorer.Primitives
 {
-    interface IBody : IPositioned, IMovable
+    interface ICircle : IPositioned, IMovable
     {
         float Radius { get; set; }
     }

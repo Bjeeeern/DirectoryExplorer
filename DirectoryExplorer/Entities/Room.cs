@@ -8,6 +8,5 @@ namespace DirectoryExplorer.Entities
     {
         public IEnumerable<Vector2> Vertices { get; set; }
         public Color Color { get; set; } = Color.DarkOrchid;
-        public ICamera Camera { get; set; }
     }
 }

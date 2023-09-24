@@ -1,6 +1,5 @@
 ﻿using DirectoryExplorer.Entities;
 using DirectoryExplorer.Primitives;
-using DirectoryExplorer.Utility;
 using DirectoryExplorer.Utility.Extensions;
 using DirectoryExplorer.Services.Interfaces;
 using Microsoft.Xna.Framework;
@@ -43,13 +42,19 @@ namespace DirectoryExplorer
 
             var dirExplorer = Services.GetService<IDirectoryExplorer>();
 
-            entities = new Builder()
-                .BeginCamera(pop => pop
-                    .Add<Ball>())
-                .BeginCamera(pop => pop
-                    .Add<Player>()
-                    .Concat(dirExplorer.BuildEntitiesFromPath(".")))
+            entities = Enumerable.Empty<IEntity>()
+                .Add<Camera>()
+                .Add<Player>()
+                .Add<Ball>()
+                .Concat(dirExplorer.BuildEntitiesFromPath("."))
                 .ToList();
+
+            var camera = entities.Where<Camera>().Single();
+            var player = entities.Where<Player>().Single();
+            var ball = entities.Where<Ball>().Single();
+
+            camera.Target = ball;
+            player.Target = ball;
 
             base.Initialize();
         }
@@ -86,28 +91,56 @@ namespace DirectoryExplorer
                     (keyboardState.IsAnyKeyDown(Keys.Down, Keys.S) ? 1 : 0),
             };
 
-            // TODO: Make camera follow player controlled ball.
-            entities
-                .Where<IPlayer>()
-                .Do(x => x.Camera.Direction = direction)
-                .Enumerate();
-
             var seed = new Random(gameTime.TotalGameTime.Seconds);
             var time = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             entities
+                .IfDo<IPlayer>(x =>
+                    x.Target.Direction = direction)
                 .IfDo<ICamera>(x =>
-                    x.Transform *= Matrix.CreateTranslation(new Vector3(-x.Direction, 0.0f) * x.Speed * time))
-                .IfDo<IBody>(x =>
+                    x.Transform = Matrix.CreateTranslation(new Vector3(-x.Target.Pos, 0.0f)))
+                .IfDo<ICircle>(x =>
                     x.Pos += x.Direction * x.Speed * time)
                 .Enumerate();
 
             entities
                 .AllInteractions()
-                .IfDo<IPolygon, IBody>((a, b) =>
+                .IfDo<IPolygon, ICircle>((P, C) =>
                 {
+                    P.Vertices
+                        .ToLineSegments()
+                        .Do((A, B) =>
+                        {
+                            A -= C.Pos;
+                            B -= C.Pos;
+                            var D = B - A;
 
-                });
+                            var a = Vector2.Dot(D, D);
+                            var b = 2.0f * Vector2.Dot(A, D);
+                            var c = Vector2.Dot(A, A) - C.Radius * C.Radius;
+
+                            var det = b * b - 4 * a * c;
+
+                            if(det > 0.0f)
+                            {
+                                var sqrt = MathF.Sqrt(det);
+                                var t1 = (-b + sqrt) / (2.0f * a);
+                                var t2 = (-b - sqrt) / (2.0f * a);
+
+                                var t = (t1 + t2) / 2.0f;
+                                var test = (2.0f * -b) / a;
+
+                                var P = A + D * t;
+
+                                var d = C.Radius - MathF.Sqrt(Vector2.Dot(P, P));
+                                var N = Vector2.Normalize(P);
+
+                                C.Pos -= N * d;
+                            }
+                        })
+                        .Enumerate();
+                })
+                .Enumerate();
 
             base.Update(gameTime);
         }
@@ -116,31 +149,30 @@ namespace DirectoryExplorer
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
-            foreach(var camera in entities.Where<ICamera>())
-            {
-                spriteBatch.Begin(transformMatrix: cameraOffset * camera.Transform);
+            var camera = entities.Where<ICamera>().Single();
 
-                camera.Children
-                    .IfDo<IPolygon>(x => x
-                        .Vertices
-                            .ToLineSegments()
-                            .Do<Vector2, Vector2>((a, b) =>
-                                spriteBatch.Draw(
-                                    textureDict["line"],
-                                    new Rectangle(a.ToPoint(), (Vector2.UnitX * Vector2.Distance(a, b) + Vector2.UnitY).ToPoint()),
-                                    null,
-                                    x.Color,
-                                    (b - a).ToAngle(),
-                                    Vector2.Zero,
-                                    SpriteEffects.None,
-                                    0.0f))
-                             .Enumerate())
-                    .IfDo<ISprite>(x => spriteBatch.Draw(textureDict[x.TextureName], x.Pos - textureDict[x.TextureName].Bounds.Size.ToVector2() * 0.5f, x.Color))
-                    .IfDo<IText>(x => spriteBatch.DrawString(fontDict[x.SpriteFont], x.Content, x.Pos, x.Color))
-                    .Enumerate();
+            spriteBatch.Begin(transformMatrix: cameraOffset * camera.Transform);
 
-                spriteBatch.End();
-            }
+            entities
+                .IfDo<IPolygon>(x =>
+                    x.Vertices
+                        .ToLineSegments()
+                        .Do((a, b) =>
+                            spriteBatch.Draw(
+                                textureDict["line"],
+                                new Rectangle(a.ToPoint(), (Vector2.UnitX * Vector2.Distance(a, b) + Vector2.UnitY).ToPoint()),
+                                null,
+                                x.Color,
+                                (b - a).ToAngle(),
+                                Vector2.Zero,
+                                SpriteEffects.None,
+                                0.0f))
+                        .Enumerate())
+                .IfDo<ISprite>(x => spriteBatch.Draw(textureDict[x.TextureName], x.Pos - textureDict[x.TextureName].Bounds.Size.ToVector2() * 0.5f, x.Color))
+                .IfDo<IText>(x => spriteBatch.DrawString(fontDict[x.SpriteFont], x.Content, x.Pos, x.Color))
+                .Enumerate();
+
+            spriteBatch.End();
 
             base.Draw(gameTime);
         }
