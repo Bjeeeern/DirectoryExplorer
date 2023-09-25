@@ -10,5 +10,6 @@ namespace DirectoryExplorer.Primitives
         bool Safety { get; set; }
 
         Action Action { get; set; }
+        bool TriggerOnce { get; set; }
     }
 }

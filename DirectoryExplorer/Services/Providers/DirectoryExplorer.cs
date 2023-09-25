@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework;
 using System;
 using File = DirectoryExplorer.Entities.File;
 using DirectoryExplorer.Utility;
+using DirectoryExplorer.Utility.Extensions;
 
 namespace DirectoryExplorer.Services.Providers
 {
@@ -17,7 +18,7 @@ namespace DirectoryExplorer.Services.Providers
         // TODO: Separate directory service from room builder service
         // TODO: Load DirectoryInfo, FileInfo, FileSystemInfo, DriveInfo etc. instead of strings.
         // TODO: Make file more yellow depending on file age, and more bold depending on file size.
-        public IEnumerable<IEntity> BuildEntitiesFromPath(List<IEntity> entities, string path, Vector2 origin = new Vector2())
+        public IEnumerable<IEntity> BuildEntitiesFromPath(List<IEntity> entities, string path, Vector2 origin = new Vector2(), bool addNorthTrigger = true, bool addSouthTrigger = true)
         {
             if (!Directory.Exists(path)) return Enumerable.Empty<IEntity>();
 
@@ -25,7 +26,7 @@ namespace DirectoryExplorer.Services.Providers
                     .Select((x, i) => new File
                     {
                         Content = x.Length > 20 ? $"{x[0..15]}...{x[^6..^0]}" : x,
-                        Pos = new Vector2(400.0f * (i / 10), 20.0f * (i % 10))
+                        Pos = Vector2.One * 0.1f + new Vector2(0.4f, 0.05f) * new Vector2((i / 10), (i % 10))
                     })
                     .ToList();
 
@@ -36,7 +37,7 @@ namespace DirectoryExplorer.Services.Providers
                     .Select((x, i) => new SubDirectory
                     {
                         Content = x.Length > 20 ? $"{x[0..15]}...{x[^6..^0]}" : x,
-                        Pos = new Vector2(20.0f * i, height)
+                        Pos = new Vector2(0.1f + 0.2f * i, 0.9f)
                     })
                     .ToList();
 
@@ -48,7 +49,7 @@ namespace DirectoryExplorer.Services.Providers
             var parentDir = new ParentDirectory
             {
                 Content = parent,
-                Pos = new Vector2(width * 0.5f - 200.0f, -20.0f)
+                Pos = new Vector2(0.1f, 0.0f)
             };
 
             var scale = new Vector2(width, height);
@@ -79,33 +80,51 @@ namespace DirectoryExplorer.Services.Providers
                     .ToList()
             };
 
-            var northTrigger = new Trigger();
-            northTrigger.Area = new RectangleF(entityToWorld(new Vector2(0.4f, 0.0f)), new Vector2(0.2f, 0.1f) * scale);
-            northTrigger.Action = () => {
-                if (Directory.GetParent(path) != null)
-                    entities.AddRange(
-                        // TODO: Collection modified error. Queue creation of entities?
-                        BuildEntitiesFromPath(entities, Directory.GetParent(path)!.FullName, origin - new Vector2(0.0f, height * 0.5f)));
+            Enumerable.Empty<IPositioned>()
+                .Concat(files)
+                .Concat(subDir)
+                .Append(parentDir)
+                .Do(x => x.Pos = entityToWorld(x.Pos))
+                .Enumerate();
+
+            var northTrigger = new Trigger
+            {
+                TriggerOnce = true,
+                Area = new RectangleF(entityToWorld(new Vector2(0.4f, 0.0f)), new Vector2(0.2f, 0.1f) * scale),
+                Action = () =>
+                {
+                    if (Directory.GetParent(path) != null)
+                        entities.AddRange(
+                            // TODO: Collection modified error. Queue creation of entities?
+                            BuildEntitiesFromPath(entities, Directory.GetParent(path)!.FullName, origin - new Vector2(0.0f, height), addSouthTrigger: false));
+                }
             };
 
-            var southTrigger = new Trigger();
-            southTrigger.Area = new RectangleF(entityToWorld(new Vector2(0.4f, 0.9f)), new Vector2(0.2f, 0.1f) * scale);
-            southTrigger.Action = () => {
-                var first = new DirectoryInfo(path).EnumerateDirectories().FirstOrDefault();
-                if (first != null)
-                    entities.AddRange(
-                        BuildEntitiesFromPath(entities, first.FullName, origin + new Vector2(0.0f, height * 0.5f)));
+            var southTrigger = new Trigger
+            {
+                TriggerOnce = true,
+                Area = new RectangleF(entityToWorld(new Vector2(0.4f, 0.9f)), new Vector2(0.2f, 0.1f) * scale),
+                Action = () =>
+                {
+                    var first = new DirectoryInfo(path).EnumerateDirectories().FirstOrDefault();
+                    if (first != null)
+                        entities.AddRange(
+                            BuildEntitiesFromPath(entities, first.FullName, origin + new Vector2(0.0f, height), addNorthTrigger: false));
+                }
             };
 
-            return subDir
+            var result = subDir
                 .Cast<IEntity>()
                 .Append(parentDir)
                 .Concat(subDir)
                 .Concat(files)
                 .Append(room)
-                .Concat(room.Walls)
-                .Append(northTrigger)
-                .Append(southTrigger);
+                .Concat(room.Walls);
+
+            if (addNorthTrigger) result = result.Append(northTrigger);
+            if (addSouthTrigger) result = result.Append(southTrigger);
+
+            return result;
         }
     }
 }

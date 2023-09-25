@@ -108,16 +108,21 @@ namespace DirectoryExplorer
                     x.Pos += x.Direction * x.Speed * time)
                 .Enumerate();
 
+            var delayedActions = new List<Action>();
+
             entities
                 .AllInteractions()
                 .IfDo<ICircle, ITrigger>((C, T) =>
                 {
                     var circleBoundingRect = new RectangleF(C.Pos - Vector2.One * C.Radius, Vector2.One * C.Radius * 2.0f);
-                    if (circleBoundingRect .Intersects(T.Area) && !T.Safety)
+                    if (circleBoundingRect.Intersects(T.Area))
                     {
-                        T.Action();
-                        T.Safety = true;
-                    } else
+                        if (!T.Safety)
+                        {
+                            delayedActions.Add(T.Action);
+                            T.Safety = true;
+                        }
+                    } else if (!T.TriggerOnce)
                     {
                         T.Safety = false;
                     }
@@ -165,6 +170,9 @@ namespace DirectoryExplorer
                         .Enumerate();
                 })
                 .Enumerate();
+
+            delayedActions
+                .ForEach(action => action());
 
             base.Update(gameTime);
         }

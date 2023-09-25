@@ -8,6 +8,7 @@ namespace DirectoryExplorer.Entities
     {
         public RectangleF Area { get; set; }
         public bool Safety { get; set; }
+        public bool TriggerOnce { get; set; }
         public Action Action { get; set; }
     }
 }
