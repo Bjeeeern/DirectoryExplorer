@@ -1,3 +1,4 @@
-﻿
-using var game = new DirectoryExplorer.Game();
+﻿using DirectoryExplorer;
+
+using var game = new Game();
 game.Run();

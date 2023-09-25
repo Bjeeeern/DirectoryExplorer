@@ -14,7 +14,6 @@ using DirectoryExplorer.Utility;
 
 namespace DirectoryExplorer
 {
-    // TODO: Move all gamecode to library project. (except DirectoryExplorer (DirectoryLoader?) implementation?)
     public class Game : Microsoft.Xna.Framework.Game
     {
         private SpriteBatch spriteBatch;
@@ -200,7 +199,7 @@ namespace DirectoryExplorer
                         .Enumerate())
                 .DoIf<ISprite>(x => spriteBatch.Draw(textureDict[x.TextureName], x.Pos - textureDict[x.TextureName].Bounds.Size.ToVector2() * 0.5f, x.Color))
                 .DoIf<IText>(x => spriteBatch.DrawString(fontDict[x.SpriteFont], x.Content, x.Pos, x.Color))
-                .DoIf<ITrigger>(x => spriteBatch.Draw(textureDict["line"], x.Area.ToRectangle(), null, new Color(x.Safety ? Color.Yellow : Color.Red, 0.2f)))
+                .DoIf<ITrigger>(x => spriteBatch.Draw(textureDict["line"], x.Area.ToRectangle(), null, new Color(x.Safety ? Color.Yellow : Color.Red, 0.0f)))
                 .Enumerate();
 
             spriteBatch.End();

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
-using DirectoryExplorer.Entities;
 using DirectoryExplorer.Primitives;
 
 namespace DirectoryExplorer.Utility.Extensions
