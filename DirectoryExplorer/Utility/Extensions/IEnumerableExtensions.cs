@@ -7,7 +7,7 @@ using DirectoryExplorer.Primitives;
 
 namespace DirectoryExplorer.Utility.Extensions
 {
-    static class IEnumerableExtensions
+    internal static class IEnumerableExtensions
     {
         public static IEnumerable<T> Where<T>(this IEnumerable<IEntity> enumerable) where T : class =>
             enumerable

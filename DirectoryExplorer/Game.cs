@@ -44,14 +44,10 @@ namespace DirectoryExplorer
 
             var dirExplorer = Services.GetService<IDirectoryExplorer>();
 
-            // TODO: Make nice again
             entities
-                .Add(new Camera());
-            entities
-                .Add(new Player());
-            entities
-                .Add(new Ball());
-            entities
+                .Add<Camera>()
+                .Add<Player>()
+                .Add<Ball>()
                 .AddRange(dirExplorer.BuildEntitiesFromPath(entities, "."));
 
             var camera = entities.Where<Camera>().Single();

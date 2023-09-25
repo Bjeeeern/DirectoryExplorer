@@ -14,7 +14,6 @@ namespace DirectoryExplorer.Services.Providers
 {
     class DirectoryExplorer : IDirectoryExplorer
     {
-        // TODO: Add trigger entities
         // TODO: Separate directory service from room builder service
         // TODO: Load DirectoryInfo, FileInfo, FileSystemInfo, DriveInfo etc. instead of strings.
         // TODO: Make file more yellow depending on file age, and more bold depending on file size.
