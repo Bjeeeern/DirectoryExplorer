@@ -61,6 +61,7 @@ namespace DirectoryExplorer.Services.Providers
             {
                 Walls =
                     new[] {
+                        // TODO: Codify type of walls
                         new[] {
                             new Vector2(0.4f, 0.0f),
                             new Vector2(0.0f, 0.0f),
@@ -121,6 +122,7 @@ namespace DirectoryExplorer.Services.Providers
                 .Append(room)
                 .Concat(room.Walls);
 
+            // TODO: Utility functions for this. AppendIf/
             if (addNorthTrigger) result = result.Append(northTrigger);
             if (addSouthTrigger) result = result.Append(southTrigger);
 

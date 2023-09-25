@@ -100,11 +100,11 @@ namespace DirectoryExplorer
             var time = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             entities
-                .IfDo<IPlayer>(x =>
+                .DoIf<IPlayer>(x =>
                     x.Target.Direction = direction)
-                .IfDo<ICamera>(x =>
+                .DoIf<ICamera>(x =>
                     x.Transform = Matrix.CreateTranslation(new Vector3(-x.Target.Pos, 0.0f)))
-                .IfDo<ICircle>(x =>
+                .DoIf<ICircle>(x =>
                     x.Pos += x.Direction * x.Speed * time)
                 .Enumerate();
 
@@ -112,7 +112,7 @@ namespace DirectoryExplorer
 
             entities
                 .AllInteractions()
-                .IfDo<ICircle, ITrigger>((C, T) =>
+                .DoIf<ICircle, ITrigger>((C, T) =>
                 {
                     var circleBoundingRect = new RectangleF(C.Pos - Vector2.One * C.Radius, Vector2.One * C.Radius * 2.0f);
                     if (circleBoundingRect.Intersects(T.Area))
@@ -127,7 +127,7 @@ namespace DirectoryExplorer
                         T.Safety = false;
                     }
                 })
-                .IfDo<IPolygon, ICircle>((P, C) =>
+                .DoIf<IPolygon, ICircle>((P, C) =>
                 {
                     // TODO: Intersection utility with enums for all the cases?
                     P.Vertices
@@ -186,7 +186,7 @@ namespace DirectoryExplorer
             spriteBatch.Begin(transformMatrix: cameraOffset * camera.Transform);
 
             entities
-                .IfDo<IPolygon>(x =>
+                .DoIf<IPolygon>(x =>
                     // TODO: Draw linesegment extension?
                     //       https://github.com/craftworkgames/MonoGame.Extended/blob/develop/src/cs/MonoGame.Extended/VectorDraw/PrimitiveDrawing.cs ?
                     x.Vertices
@@ -202,9 +202,9 @@ namespace DirectoryExplorer
                                 SpriteEffects.None,
                                 0.0f))
                         .Enumerate())
-                .IfDo<ISprite>(x => spriteBatch.Draw(textureDict[x.TextureName], x.Pos - textureDict[x.TextureName].Bounds.Size.ToVector2() * 0.5f, x.Color))
-                .IfDo<IText>(x => spriteBatch.DrawString(fontDict[x.SpriteFont], x.Content, x.Pos, x.Color))
-                .IfDo<ITrigger>(x => spriteBatch.Draw(textureDict["line"], x.Area.ToRectangle(), null, new Color(x.Safety ? Color.Yellow : Color.Red, 0.2f)))
+                .DoIf<ISprite>(x => spriteBatch.Draw(textureDict[x.TextureName], x.Pos - textureDict[x.TextureName].Bounds.Size.ToVector2() * 0.5f, x.Color))
+                .DoIf<IText>(x => spriteBatch.DrawString(fontDict[x.SpriteFont], x.Content, x.Pos, x.Color))
+                .DoIf<ITrigger>(x => spriteBatch.Draw(textureDict["line"], x.Area.ToRectangle(), null, new Color(x.Safety ? Color.Yellow : Color.Red, 0.2f)))
                 .Enumerate();
 
             spriteBatch.End();

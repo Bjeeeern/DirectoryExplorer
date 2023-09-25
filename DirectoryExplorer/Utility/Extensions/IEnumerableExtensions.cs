@@ -14,14 +14,14 @@ namespace DirectoryExplorer.Utility.Extensions
                 .Where(e => e is T)
                 .Cast<T>();
 
-        public static IEnumerable<IEntity> WhereDo<T>(this IEnumerable<IEntity> enumerable, Func<T, bool> test, Action<T> action) where T : class =>
+        public static IEnumerable<IEntity> DoWhere<T>(this IEnumerable<IEntity> enumerable, Func<T, bool> test, Action<T> action) where T : class =>
             enumerable.Select(e =>
             {
                 if (e is T t && test(t)) action(t);
                 return e;
             });
 
-        public static IEnumerable<IEntity> IfDo<T>(this IEnumerable<IEntity> enumerable, Action<T> action) where T : class =>
+        public static IEnumerable<IEntity> DoIf<T>(this IEnumerable<IEntity> enumerable, Action<T> action) where T : class =>
             enumerable.Select(e =>
             {
                 if (e is T t) action(t);
@@ -31,7 +31,7 @@ namespace DirectoryExplorer.Utility.Extensions
         public static IEnumerable<(IEntity, IEntity)> AllInteractions(this IEnumerable<IEntity> enumerable) =>
             enumerable.SelectMany(a => enumerable.Where(b => a != b).Select(b => (a, b))).DistinctBy(x => x.a.GetHashCode() * x.b.GetHashCode());
 
-        public static IEnumerable<(IEntity, IEntity)> IfDo<T1, T2>(this IEnumerable<(IEntity A, IEntity B)> enumerable, Action<T1, T2> action) where T1 : class where T2 : class =>
+        public static IEnumerable<(IEntity, IEntity)> DoIf<T1, T2>(this IEnumerable<(IEntity A, IEntity B)> enumerable, Action<T1, T2> action) where T1 : class where T2 : class =>
             enumerable.Select(e =>
             {
                 if (e.A is T1 && e.B is T2)
