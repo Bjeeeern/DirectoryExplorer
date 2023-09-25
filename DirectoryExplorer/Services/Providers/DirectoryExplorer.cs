@@ -122,7 +122,7 @@ namespace DirectoryExplorer.Services.Providers
                 .Append(room)
                 .Concat(room.Walls);
 
-            // TODO: Utility functions for this. AppendIf/
+            // TODO: Utility functions for this. AppendIf
             if (addNorthTrigger) result = result.Append(northTrigger);
             if (addSouthTrigger) result = result.Append(southTrigger);
 
