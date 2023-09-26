@@ -4,6 +4,6 @@ namespace DirectoryExplorer.Primitives
 {
     internal interface IRoom : IEntity
     {
-        IEnumerable<IPolygon> Walls { get; set; }
+        IList<IPolygon> Walls { get; set; }
     }
 }

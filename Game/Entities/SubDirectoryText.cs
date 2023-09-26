@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework;
 
 namespace DirectoryExplorer.Entities
 {
-    internal class SubDirectory : IText
+    internal class SubDirectoryText : IText
     {
         public Color Color { get; set; } = Color.GreenYellow;
         public Vector2 Pos { get; set; }

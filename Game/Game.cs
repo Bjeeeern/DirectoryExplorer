@@ -1,5 +1,4 @@
-﻿using DirectoryExplorer.Entities;
-using DirectoryExplorer.Primitives;
+﻿using DirectoryExplorer.Primitives;
 using DirectoryExplorer.Utility.Extensions;
 using DirectoryExplorer.Services.Interfaces;
 using Microsoft.Xna.Framework;
@@ -11,6 +10,9 @@ using System.Linq;
 using Color = Microsoft.Xna.Framework.Color;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 using DirectoryExplorer.Utility;
+using Microsoft.Extensions.DependencyInjection;
+using DirectoryExplorer.Services.Providers;
+using Game.Services.Providers;
 
 namespace DirectoryExplorer
 {
@@ -18,10 +20,11 @@ namespace DirectoryExplorer
     {
         private SpriteBatch spriteBatch;
         private GraphicsDeviceManager graphicsDeviceManager;
+        private ServiceProvider serviceProvider;
 
-        private List<IEntity> entities = new List<IEntity>();
-        private Dictionary<string, Texture2D> textureDict;
-        private Dictionary<string, SpriteFont> fontDict;
+        private List<IEntity> entities = new ();
+        private Dictionary<string, Texture2D> textureDict = new ();
+        private Dictionary<string, SpriteFont> fontDict = new ();
         private Matrix cameraOffset;
 
         public Game()
@@ -39,23 +42,6 @@ namespace DirectoryExplorer
 
             cameraOffset = Matrix.CreateWorld(graphicsDeviceManager.GetScreenScale() * 0.5f, Vector3.Forward, Vector3.Up);
 
-            Services.AddService<IDirectoryExplorer>(new Services.Providers.DirectoryExplorer());
-
-            var dirExplorer = Services.GetService<IDirectoryExplorer>();
-
-            entities
-                .Add<Camera>()
-                .Add<Player>()
-                .Add<Ball>()
-                .AddRange(dirExplorer.BuildEntitiesFromPath(entities, "."));
-
-            var camera = entities.Where<Camera>().Single();
-            var player = entities.Where<Player>().Single();
-            var ball = entities.Where<Ball>().Single();
-
-            camera.Target = ball;
-            player.Target = ball;
-
             base.Initialize();
         }
 
@@ -63,17 +49,28 @@ namespace DirectoryExplorer
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            textureDict = entities
-                .Where<ISprite>()
-                .DistinctBy(x => x.TextureName)
-                .ToDictionary(x => x.TextureName, x => Content.Load<Texture2D>($"images/{x.TextureName}"));
-
             textureDict["line"] = new Texture2D(GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
             textureDict["line"].SetData(new[] { Color.White }, 0, 1);
 
-            fontDict = new() {
-                { "default", Content.Load<SpriteFont>("fonts/default") }
-            };
+            fontDict["default"] = Content.Load<SpriteFont>("fonts/default");
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton<IDirectoryReader, DirectoryReader>();
+            serviceCollection.AddSingleton<IWorldBuilder, WorldBuilder>();
+            serviceCollection.AddSingleton<RoomBuilder>();
+            serviceCollection.AddSingleton(fontDict["default"]);
+
+            serviceProvider = serviceCollection.BuildServiceProvider(validateScopes: true);
+
+            entities = serviceProvider
+                .GetRequiredService<IWorldBuilder>()
+                .BuildWorld();
+
+            entities
+                .Where<ISprite>()
+                .DistinctBy(x => x.TextureName)
+                .Do(s => textureDict[s.TextureName] = Content.Load<Texture2D>($"images/{s.TextureName}"))
+                .Enumerate();
         }
 
         protected override void Update(GameTime gameTime)
@@ -145,7 +142,7 @@ namespace DirectoryExplorer
 
                                 var r2 = C.Radius * C.Radius;
                                 var absA = Vector2.Dot(A, A);
-                                var absB = Vector2.Dot(A, A);
+                                var absB = Vector2.Dot(B, B);
 
                                 if ((0.0f <= t && t <= 1.0f) || absA <= r2 || absB <= r2)
                                 {
@@ -156,7 +153,7 @@ namespace DirectoryExplorer
                                         : A;
 
                                     var d = C.Radius - MathF.Sqrt(Vector2.Dot(P, P));
-                                    var N = Vector2.Normalize(P);
+                                    var N = Vector2.Normalize(P == Vector2.Zero ? Vector2.UnitY : P);
 
                                     C.Pos -= N * d;
                                 }
@@ -197,9 +194,12 @@ namespace DirectoryExplorer
                                 SpriteEffects.None,
                                 0.0f))
                         .Enumerate())
-                .DoIf<ISprite>(x => spriteBatch.Draw(textureDict[x.TextureName], x.Pos - textureDict[x.TextureName].Bounds.Size.ToVector2() * 0.5f, x.Color))
-                .DoIf<IText>(x => spriteBatch.DrawString(fontDict[x.SpriteFont], x.Content, x.Pos, x.Color))
-                .DoIf<ITrigger>(x => spriteBatch.Draw(textureDict["line"], x.Area.ToRectangle(), null, new Color(x.Safety ? Color.Yellow : Color.Red, 0.0f)))
+                .DoIf<ISprite>(x =>
+                    spriteBatch.Draw(textureDict[x.TextureName], x.Pos - textureDict[x.TextureName].Bounds.Size.ToVector2() * 0.5f, x.Color))
+                .DoIf<IText>(x =>
+                    spriteBatch.DrawString(fontDict[x.SpriteFont], x.Content, x.Pos, x.Color))
+                .DoIf<ITrigger>(x =>
+                    spriteBatch.Draw(textureDict["line"], x.Area.ToRectangle(), null, new Color(x.Safety ? Color.Yellow : Color.Red, 0.0f)))
                 .Enumerate();
 
             spriteBatch.End();
