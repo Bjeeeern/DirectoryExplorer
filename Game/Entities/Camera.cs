@@ -1,8 +1,8 @@
-﻿using DirectoryExplorer.Primitives;
+﻿using Game.Primitives;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 
-namespace DirectoryExplorer.Entities
+namespace Game.Entities
 {
     internal class Camera : ICamera
     {

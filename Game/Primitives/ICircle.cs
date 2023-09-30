@@ -1,6 +1,8 @@
-﻿namespace DirectoryExplorer.Primitives
+﻿using Game.Primitives;
+
+namespace Game.Primitives
 {
-    interface ICircle : IPositioned, IMovable
+    interface ICircle : IBody
     {
         float Radius { get; set; }
     }

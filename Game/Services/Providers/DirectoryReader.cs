@@ -1,9 +1,9 @@
 ﻿using System.IO;
-using DirectoryExplorer.Services.Interfaces;
+using Game.Services.Interfaces;
 using GameDirectory = Game.Services.Models.Directory;
 using Directory = System.IO.Directory;
 
-namespace DirectoryExplorer.Services.Providers
+namespace Game.Services.Providers
 {
     class DirectoryReader : IDirectoryReader
     {

@@ -1,8 +1,8 @@
-﻿using DirectoryExplorer.Primitives;
-using DirectoryExplorer.Utility;
+﻿using Game.Primitives;
+using Game.Utility;
 using System;
 
-namespace DirectoryExplorer.Entities
+namespace Game.Entities
 {
     internal class Trigger : ITrigger
     {

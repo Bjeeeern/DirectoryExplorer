@@ -6,9 +6,10 @@
         {
             if (str.Length <= limit) return str;
 
-            if (str.Length < 5 || limit < 5) return str[0..limit];
-
             var beginning = limit / 2;
+
+            if (limit < 5 || beginning < 3) return str[0..limit];
+
             var end = beginning - 3;
 
             return $"{str[0..beginning]}...{str[^end..^0]}";

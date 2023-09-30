@@ -1,7 +1,9 @@
-﻿namespace DirectoryExplorer.Primitives
+﻿using Game.Primitives;
+
+namespace Game.Primitives
 {
     internal interface IPlayer : IEntity
     {
-        IMovable Target { get; set; }
+        IBody Avatar { get; set; }
     }
 }

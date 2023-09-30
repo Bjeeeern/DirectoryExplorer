@@ -1,8 +1,8 @@
-﻿using DirectoryExplorer.Entities;
-using DirectoryExplorer.Primitives;
-using DirectoryExplorer.Services.Interfaces;
-using DirectoryExplorer.Utility;
-using DirectoryExplorer.Utility.Extensions;
+﻿using Game.Entities;
+using Game.Primitives;
+using Game.Services.Interfaces;
+using Game.Utility;
+using Game.Utility.Extensions;
 using Game.Services.Models;
 using Game.Utility.Extensions;
 using Microsoft.Xna.Framework;

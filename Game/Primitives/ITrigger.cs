@@ -1,7 +1,7 @@
-﻿using DirectoryExplorer.Utility;
+﻿using Game.Utility;
 using System;
 
-namespace DirectoryExplorer.Primitives
+namespace Game.Primitives
 {
     internal interface ITrigger : IEntity
     {

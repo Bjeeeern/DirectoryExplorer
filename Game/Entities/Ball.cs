@@ -1,8 +1,8 @@
-﻿using DirectoryExplorer.Primitives;
+﻿using Game.Primitives;
 using Color = Microsoft.Xna.Framework.Color;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
-namespace DirectoryExplorer.Entities
+namespace Game.Entities
 {
     class Ball : ICircle, ISprite
     {

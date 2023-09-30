@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace DirectoryExplorer.Utility.Extensions
+namespace Game.Utility.Extensions
 {
     internal static class GraphicsDeviceManagerExtensions
     {

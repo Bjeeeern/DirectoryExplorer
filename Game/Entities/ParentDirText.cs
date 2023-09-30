@@ -1,7 +1,7 @@
-﻿using DirectoryExplorer.Primitives;
+﻿using Game.Primitives;
 using Microsoft.Xna.Framework;
 
-namespace DirectoryExplorer.Entities
+namespace Game.Entities
 {
     internal class ParentDirText : IText
     {
@@ -9,5 +9,6 @@ namespace DirectoryExplorer.Entities
         public Vector2 Pos { get; set; }
         public string Content { get; set; }
         public string SpriteFont { get; set; } = "default";
+        public int? Limit { get; set; }
     }
 }

@@ -1,10 +1,11 @@
-﻿using DirectoryExplorer.Primitives;
+﻿using Game.Primitives;
+using Game.Primitives;
 
-namespace DirectoryExplorer.Entities
+namespace Game.Entities
 {
     class Player : IPlayer, IRoomTracker
     {
         public string CurrentDirectory { get; set; } = ".";
-        public IMovable Target { get; set; }
+        public IBody Avatar { get; set; }
     }
 }

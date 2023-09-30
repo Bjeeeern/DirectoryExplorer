@@ -1,6 +1,6 @@
-﻿using DirectoryExplorer.Primitives;
-using DirectoryExplorer.Utility.Extensions;
-using DirectoryExplorer.Services.Interfaces;
+﻿using Game.Primitives;
+using Game.Utility.Extensions;
+using Game.Services.Interfaces;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -9,12 +9,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Color = Microsoft.Xna.Framework.Color;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
-using DirectoryExplorer.Utility;
+using Game.Utility;
 using Microsoft.Extensions.DependencyInjection;
-using DirectoryExplorer.Services.Providers;
 using Game.Services.Providers;
 
-namespace DirectoryExplorer
+namespace Game
 {
     public class Game : Microsoft.Xna.Framework.Game
     {
@@ -37,6 +36,7 @@ namespace DirectoryExplorer
 
         protected override void Initialize()
         {
+            graphicsDeviceManager.IsFullScreen = true;
             graphicsDeviceManager.SetScreenScale(1920, 1080);
             graphicsDeviceManager.ApplyChanges();
 
@@ -93,7 +93,7 @@ namespace DirectoryExplorer
 
             entities
                 .DoIf<IPlayer>(x =>
-                    x.Target.Direction = direction)
+                    x.Avatar.Direction = direction)
                 .DoIf<ICamera>(x =>
                     x.Transform = Matrix.CreateTranslation(new Vector3(-x.Target.Pos, 0.0f)))
                 .DoIf<ICircle>(x =>
@@ -104,6 +104,10 @@ namespace DirectoryExplorer
 
             entities
                 .AllInteractions()
+                .DoIf<IPlayer, IRoom>((P, R) =>
+                {
+                    R.UpdateRoomSize(P.Avatar.Pos);
+                })
                 .DoIf<ICircle, ITrigger>((C, T) =>
                 {
                     var circleBoundingRect = new RectangleF(C.Pos - Vector2.One * C.Radius, Vector2.One * C.Radius * 2.0f);
@@ -197,7 +201,7 @@ namespace DirectoryExplorer
                 .DoIf<ISprite>(x =>
                     spriteBatch.Draw(textureDict[x.TextureName], x.Pos - textureDict[x.TextureName].Bounds.Size.ToVector2() * 0.5f, x.Color))
                 .DoIf<IText>(x =>
-                    spriteBatch.DrawString(fontDict[x.SpriteFont], x.Content, x.Pos, x.Color))
+                    spriteBatch.DrawString(fontDict[x.SpriteFont], x.Text, x.Pos, x.Color))
                 .DoIf<ITrigger>(x =>
                     spriteBatch.Draw(textureDict["line"], x.Area.ToRectangle(), null, new Color(x.Safety ? Color.Yellow : Color.Red, 0.0f)))
                 .Enumerate();

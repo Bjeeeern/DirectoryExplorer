@@ -1,6 +1,6 @@
 ﻿using Game.Services.Models;
 
-namespace DirectoryExplorer.Services.Interfaces
+namespace Game.Services.Interfaces
 {
     internal interface IDirectoryReader
     {

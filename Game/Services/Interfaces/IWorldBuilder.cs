@@ -1,7 +1,7 @@
-﻿using DirectoryExplorer.Primitives;
+﻿using Game.Primitives;
 using System.Collections.Generic;
 
-namespace DirectoryExplorer
+namespace Game
 {
     internal interface IWorldBuilder
     {

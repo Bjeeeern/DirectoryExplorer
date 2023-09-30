@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace DirectoryExplorer.Primitives
+namespace Game.Primitives
 {
     internal interface ICamera: IEntity
     {

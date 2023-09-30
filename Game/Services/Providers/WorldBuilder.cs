@@ -1,12 +1,12 @@
-﻿using DirectoryExplorer.Entities;
-using DirectoryExplorer.Primitives;
-using DirectoryExplorer.Utility.Extensions;
+﻿using Game.Entities;
+using Game.Primitives;
+using Game.Utility.Extensions;
 using Game.Services.Providers;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DirectoryExplorer
+namespace Game
 {
     internal class WorldBuilder : IWorldBuilder
     {
@@ -24,14 +24,14 @@ namespace DirectoryExplorer
                 .Add<Camera>()
                 .Add<Player>()
                 .Add<Ball>()
-                .AddRange(roomBuilder.BuildRoom(".", Vector2.Zero));
+                .AddRange(roomBuilder.BuildRoom("./test", Vector2.Zero));
 
             var camera = entities.Where<Camera>().Single();
             var player = entities.Where<Player>().Single();
             var ball = entities.Where<Ball>().Single();
 
             camera.Target = ball;
-            player.Target = ball;
+            player.Avatar = ball;
 
             return entities;
         }

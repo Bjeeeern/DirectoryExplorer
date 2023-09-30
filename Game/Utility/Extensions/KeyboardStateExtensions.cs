@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework.Input;
 using System.Linq;
 
-namespace DirectoryExplorer.Utility.Extensions
+namespace Game.Utility.Extensions
 {
     internal static class KeyboardStateExtensions
     {

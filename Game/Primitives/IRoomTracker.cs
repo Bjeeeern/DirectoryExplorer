@@ -1,4 +1,4 @@
-﻿namespace DirectoryExplorer.Primitives
+﻿namespace Game.Primitives
 {
     interface IRoomTracker : IEntity
     {

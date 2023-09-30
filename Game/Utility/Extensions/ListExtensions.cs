@@ -1,7 +1,7 @@
-﻿using DirectoryExplorer.Primitives;
+﻿using Game.Primitives;
 using System.Collections.Generic;
 
-namespace DirectoryExplorer.Utility.Extensions
+namespace Game.Utility.Extensions
 {
     internal static class ListExtensions
     {

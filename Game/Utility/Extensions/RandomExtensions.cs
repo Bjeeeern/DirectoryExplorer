@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 
-namespace DirectoryExplorer.Utility.Extensions
+namespace Game.Utility.Extensions
 {
     static class RandomExtensions
     {

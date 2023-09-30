@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DirectoryExplorer.Utility.Extensions
+namespace Game.Utility.Extensions
 {
     internal static class Vector2Extensions
     {

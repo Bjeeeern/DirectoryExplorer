@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace DirectoryExplorer.Utility
+namespace Game.Utility
 {
     internal struct RectangleF
     {
