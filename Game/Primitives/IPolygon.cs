@@ -5,6 +5,6 @@ namespace DirectoryExplorer.Primitives
 {
     internal interface IPolygon : IEntity, ITintend
     {
-        IEnumerable<Vector2> Vertices { get; set; }
+        IList<Vector2> Vertices { get; set; }
     }
 }

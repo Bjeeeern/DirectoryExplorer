@@ -46,6 +46,13 @@ namespace DirectoryExplorer.Utility.Extensions
                 return e;
             });
 
+        public static IEnumerable<T> Do<T>(this IEnumerable<T> enumerable, Action<T, int> action) =>
+            enumerable.Select((e, i) =>
+            {
+                action(e, i);
+                return e;
+            });
+
         public static IEnumerable<(T1, T2)> Do<T1, T2>(this IEnumerable<(T1 A, T2 B)> enumerable, Action<T1, T2> action) =>
             enumerable.Select(e =>
             {
