@@ -36,7 +36,7 @@ namespace Game
 
         protected override void Initialize()
         {
-            graphicsDeviceManager.IsFullScreen = true;
+            graphicsDeviceManager.IsFullScreen = false;
             graphicsDeviceManager.SetScreenScale(1920, 1080);
             graphicsDeviceManager.ApplyChanges();
 
@@ -92,6 +92,31 @@ namespace Game
             var time = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             entities
+                .AllInteractions()
+                .DoIf<IPlayer, IRoom>((P, R) =>
+                {
+                    var (translation, angle) = R.UpdateRoomSize(P.Avatar.Pos);
+                    
+                    if(direction.Y != 0)
+                    {
+                        if (direction.Y < 0)
+                        {
+                            direction.Y = 0;
+                            angle *= -1;
+                            direction += angle;
+                        }
+                        else
+                        {
+                            direction.Y = 0;
+                            direction += angle;
+                        }
+                    }
+
+                    P.Avatar.Pos += translation;
+                })
+                .Enumerate();
+
+            entities
                 .DoIf<IPlayer>(x =>
                     x.Avatar.Direction = direction)
                 .DoIf<ICamera>(x =>
@@ -104,10 +129,6 @@ namespace Game
 
             entities
                 .AllInteractions()
-                .DoIf<IPlayer, IRoom>((P, R) =>
-                {
-                    R.UpdateRoomSize(P.Avatar.Pos);
-                })
                 .DoIf<ICircle, ITrigger>((C, T) =>
                 {
                     var circleBoundingRect = new RectangleF(C.Pos - Vector2.One * C.Radius, Vector2.One * C.Radius * 2.0f);
@@ -200,6 +221,16 @@ namespace Game
                         .Enumerate())
                 .DoIf<ISprite>(x =>
                     spriteBatch.Draw(textureDict[x.TextureName], x.Pos - textureDict[x.TextureName].Bounds.Size.ToVector2() * 0.5f, x.Color))
+                .DoIf<IPlayer>(x =>
+                    spriteBatch.Draw(
+                        textureDict["line"],
+                        new Rectangle(x.Avatar.Pos.ToPoint(), (new Vector2(100.0f, 1.0f)).ToPoint()),
+                        null,
+                        Color.Red,
+                        Vector2.Normalize(x.Avatar.Direction).ToAngle(),
+                        Vector2.Zero,
+                        SpriteEffects.None,
+                        0.0f))
                 .DoIf<IText>(x =>
                     spriteBatch.DrawString(fontDict[x.SpriteFont], x.Text, x.Pos, x.Color))
                 .DoIf<ITrigger>(x =>

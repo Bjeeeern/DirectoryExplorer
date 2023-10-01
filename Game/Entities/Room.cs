@@ -1,7 +1,6 @@
 ﻿using Game.Primitives;
 using Game.Utility.Extensions;
 using Game.Services.Models;
-using Game.Utility.Extensions;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
@@ -47,7 +46,11 @@ namespace Game.Entities
             UpdateRoomSize(origin);
         }
 
-        public void UpdateRoomSize(Vector2 playerPos)
+        // TODO: make not static
+        public static float prevDX;
+        public static float prevDY;
+
+        public (Vector2 Translation, Vector2 Angle) UpdateRoomSize(Vector2 playerPos)
         {
             var padding = 20.0f;
 
@@ -76,6 +79,22 @@ namespace Game.Entities
             var t = MathHelper.Clamp((playerPos - origin).Y / (height * 0.5f - padding * 4.0f), 0.0f, 1.0f);
             var bottomWidth = MathHelper.Lerp(topWidth, neededWidth, t);
             var bottomWidthStart = (bottomWidth - topWidth) * -0.5f;
+
+            var dY = MathHelper.Clamp((playerPos.Y - topLeft.Y) / height, 0.0f, 1.0f);
+            var toWall = MathHelper.Lerp(topWidth, bottomWidth, dY) * 0.5f;
+
+            var dX = MathHelper.Clamp((playerPos.X - origin.X) / toWall, -1.0f, 1.0f);
+
+            var ddY = dY - prevDY;
+            prevDY = dY;
+
+            var ddX = dX - prevDX;
+            prevDX = dX;
+
+            var playerTranslation = ddY != 0 ? new Vector2(-ddX * toWall, 0.0f) : Vector2.Zero;
+
+            var goal = new Vector2(dX * bottomWidth * 0.5f, topLeft.Y + height);
+            var playerAngle = Vector2.Normalize(goal - playerPos);
 
             var allocatableWidth = bottomWidth - padding * (subDirs.Count + 1);
             var southDoorWidth = MathF.Min(northDoorWidth, allocatableWidth / subDirs.Count);
@@ -130,6 +149,8 @@ namespace Game.Entities
                         bottomWidthStart + unallocatedWidth * 0.5f + padding + i * southDoorDistance,
                         height - (padding + singleCharSize.Y));
             }).Enumerate();
+
+            return (playerTranslation, playerAngle);
         }
     }
 }
