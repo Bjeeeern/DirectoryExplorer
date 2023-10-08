@@ -1,9 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
+using MonoGame.Extended.Shapes;
+using System.Collections.Generic;
 
 namespace Game.Primitives
 {
-    internal interface IRoom : IEntity
+    internal interface IRoom : ITintend, IEntity
     {
-        public (Vector2 Translation, Vector2 Angle) UpdateRoomSize(Vector2 playerPos);
+        void UpdateRoomSize();
+        Vector2 DoRoomTransform(Vector2 point, float scalar);
+        float GetHorizontalPointScalar(Vector2 point);
+        List<Polyline> Walls { get; set; }
     }
 }

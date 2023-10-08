@@ -30,9 +30,8 @@ namespace Game.Services.Providers
         {
             directory = directoryReader.ReadDirectory(path);
 
-            var width = 1000.0f;
             var singleCharSize = defaultFont.MeasureString("O");
-            var room = new Room(origin, width, singleCharSize, directory);
+            var room = new Room(origin, singleCharSize, directory, out var subEntities);
 
             /*
             var northTrigger = new Trigger
@@ -63,11 +62,8 @@ namespace Game.Services.Providers
             */
 
             var result = Enumerable.Empty<IEntity>()
-                .Append(room.parentDir)
-                .Concat(room.files)
-                .Concat(room.subDirs)
-                .Concat(room.walls)
-                .Append(room);
+                .Append(room)
+                .Concat(subEntities);
 
             // TODO: Utility functions for this. AppendIf
             // if (directory.Parent != null) result = result.Append(northTrigger);

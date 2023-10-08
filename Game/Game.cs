@@ -12,19 +12,22 @@ using Vector2 = Microsoft.Xna.Framework.Vector2;
 using Game.Utility;
 using Microsoft.Extensions.DependencyInjection;
 using Game.Services.Providers;
+using MonoGame.Extended.VectorDraw;
 
 namespace Game
 {
     public class Game : Microsoft.Xna.Framework.Game
     {
         private SpriteBatch spriteBatch;
+        private PrimitiveBatch primitiveBatch;
         private GraphicsDeviceManager graphicsDeviceManager;
         private ServiceProvider serviceProvider;
 
         private List<IEntity> entities = new ();
         private Dictionary<string, Texture2D> textureDict = new ();
         private Dictionary<string, SpriteFont> fontDict = new ();
-        private Matrix cameraOffset;
+        private Matrix worldToSpriteBatchScreen;
+        private Matrix worldToPrimitiveBatchScreen;
 
         public Game()
         {
@@ -40,7 +43,9 @@ namespace Game
             graphicsDeviceManager.SetScreenScale(1920, 1080);
             graphicsDeviceManager.ApplyChanges();
 
-            cameraOffset = Matrix.CreateWorld(graphicsDeviceManager.GetScreenScale() * 0.5f, Vector3.Forward, Vector3.Up);
+            var screen = graphicsDeviceManager.GetScreenScale();
+            worldToSpriteBatchScreen = Matrix.CreateWorld(screen * 0.5f, Vector3.Forward, Vector3.Up);
+            worldToPrimitiveBatchScreen = Matrix.CreateOrthographic(screen.X, screen.Y, -1, 1) * Matrix.CreateReflection(new Plane(Vector3.Zero, Vector3.Up));
 
             base.Initialize();
         }
@@ -48,9 +53,7 @@ namespace Game
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            textureDict["line"] = new Texture2D(GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
-            textureDict["line"].SetData(new[] { Color.White }, 0, 1);
+            primitiveBatch = new PrimitiveBatch(GraphicsDevice);
 
             fontDict["default"] = Content.Load<SpriteFont>("fonts/default");
 
@@ -88,6 +91,8 @@ namespace Game
                     (keyboardState.IsAnyKeyDown(Keys.Down, Keys.S) ? 1 : 0),
             };
 
+            if(direction.X != 0.0f && direction.Y != 0.0f) direction.Normalize();
+
             var seed = new Random(gameTime.TotalGameTime.Seconds);
             var time = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -95,24 +100,9 @@ namespace Game
                 .AllInteractions()
                 .DoIf<IPlayer, IRoom>((P, R) =>
                 {
-                    var (translation, angle) = R.UpdateRoomSize(P.Avatar.Pos);
-                    
-                    if(direction.Y != 0)
-                    {
-                        if (direction.Y < 0)
-                        {
-                            direction.Y = 0;
-                            angle *= -1;
-                            direction += angle;
-                        }
-                        else
-                        {
-                            direction.Y = 0;
-                            direction += angle;
-                        }
-                    }
+                    var scalar = R.GetHorizontalPointScalar(P.Avatar.Pos);
 
-                    P.Avatar.Pos += translation;
+                    direction.X /= scalar;
                 })
                 .Enumerate();
 
@@ -144,11 +134,11 @@ namespace Game
                         T.Safety = false;
                     }
                 })
-                .DoIf<IPolygon, ICircle>((P, C) =>
+                .DoIf<IRoom, ICircle>((R, C) =>
                 {
                     // TODO: Intersection utility with enums for all the cases?
-                    P.Vertices
-                        .ToLineSegments()
+                    R.Walls
+                        .SelectMany(w => w.Points.ToLineSegments())
                         .Do((A, B) =>
                         {
                             A -= C.Pos;
@@ -199,45 +189,45 @@ namespace Game
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             var camera = entities.Where<ICamera>().Single();
+            var room = entities.Where<IRoom>().Single();
+            var avatar = entities.Where<IPlayer>().Single().Avatar;
+            var scalar = room.GetHorizontalPointScalar(avatar.Pos);
 
-            spriteBatch.Begin(transformMatrix: cameraOffset * camera.Transform);
+            spriteBatch.Begin(transformMatrix: worldToSpriteBatchScreen * camera.Transform);
 
             entities
-                .DoIf<IPolygon>(x =>
-                    // TODO: Draw linesegment extension?
-                    //       https://github.com/craftworkgames/MonoGame.Extended/blob/develop/src/cs/MonoGame.Extended/VectorDraw/PrimitiveDrawing.cs ?
-                    x.Vertices
-                        .ToLineSegments()
-                        .Do((a, b) =>
-                            spriteBatch.Draw(
-                                textureDict["line"],
-                                new Rectangle(a.ToPoint(), (Vector2.UnitX * Vector2.Distance(a, b) + Vector2.UnitY).ToPoint()),
-                                null,
-                                x.Color,
-                                (b - a).ToAngle(),
-                                Vector2.Zero,
-                                SpriteEffects.None,
-                                0.0f))
-                        .Enumerate())
                 .DoIf<ISprite>(x =>
-                    spriteBatch.Draw(textureDict[x.TextureName], x.Pos - textureDict[x.TextureName].Bounds.Size.ToVector2() * 0.5f, x.Color))
-                .DoIf<IPlayer>(x =>
-                    spriteBatch.Draw(
-                        textureDict["line"],
-                        new Rectangle(x.Avatar.Pos.ToPoint(), (new Vector2(100.0f, 1.0f)).ToPoint()),
-                        null,
-                        Color.Red,
-                        Vector2.Normalize(x.Avatar.Direction).ToAngle(),
-                        Vector2.Zero,
-                        SpriteEffects.None,
-                        0.0f))
+                {
+                    var pos = room.DoRoomTransform(x.Pos, scalar) - textureDict[x.TextureName].Bounds.Size.ToVector2() * 0.5f;
+                    spriteBatch.Draw(textureDict[x.TextureName], pos, x.Color);
+                })
                 .DoIf<IText>(x =>
                     spriteBatch.DrawString(fontDict[x.SpriteFont], x.Text, x.Pos, x.Color))
-                .DoIf<ITrigger>(x =>
-                    spriteBatch.Draw(textureDict["line"], x.Area.ToRectangle(), null, new Color(x.Safety ? Color.Yellow : Color.Red, 0.0f)))
                 .Enumerate();
 
             spriteBatch.End();
+
+            var projection = Matrix.Identity;
+            var view = camera.Transform * worldToPrimitiveBatchScreen;
+
+            primitiveBatch.Begin(ref projection, ref view);
+            var primitiveDrawing = new PrimitiveDrawing(primitiveBatch);
+
+            entities
+                .DoIf<IRoom>(x => x.Walls
+                    .Select(w => w.Points)
+                    .Do(ps => primitiveDrawing.DrawPolygon(Vector2.Zero, ps.Select(p => room.DoRoomTransform(p, scalar)).ToArray(), x.Color))
+                    .Enumerate())
+                .DoIf<IPlayer>(x =>
+                {
+                    var pos = room.DoRoomTransform(x.Avatar.Pos, scalar);
+                    primitiveDrawing.DrawSegment(pos, pos + x.Avatar.Direction * 100.0f, Color.Red);
+                })
+                .DoIf<ITrigger>(x =>
+                    primitiveDrawing.DrawSolidRectangle(new Vector2(x.Area.X, x.Area.Y), x.Area.Width, x.Area.Height, new Color(x.Safety ? Color.Yellow : Color.Red, 0.5f)))
+                .Enumerate();
+
+            primitiveBatch.End();
 
             base.Draw(gameTime);
         }
