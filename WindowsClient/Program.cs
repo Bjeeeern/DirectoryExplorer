@@ -1,2 +1,4 @@
-﻿using var game = new Game.Game();
+﻿ApplicationConfiguration.Initialize();
+
+using var game = new GameService();
 game.Run();
