@@ -1,4 +1,4 @@
 ﻿ApplicationConfiguration.Initialize();
-
-using var game = new GameService();
-game.Run();
+GameServiceCollection.Initialize()
+    .GetRequiredService<XnaGame>()
+    .Run();

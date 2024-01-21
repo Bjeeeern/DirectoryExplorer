@@ -1,39 +1,18 @@
-using Microsoft.Xna.Framework.Input;
-using System.Numerics;
-
 namespace GameTests;
 
 public class GameTests
 {
-    [Fact]
-    public void CanInitServiceCollection()
+    private readonly IServiceProvider provider;
+
+    public GameTests()
     {
-        GameServiceCollection.Initialize();
+        this.provider = GameServiceCollection.Initialize();
     }
 
     [Fact]
-    public void CanRetrieveGameService()
+    public void PlayerHasPosition()
     {
-        var provider = GameServiceCollection.Initialize();
-
-        provider.GetRequiredService<GameService>();
-    }
-
-    [Fact]
-    public void RunOneFrame()
-    {
-        var game = GameServiceCollection
-            .Initialize()
-            .GetRequiredService<GameService>();
-
-        game.Tick();
-    }
-
-    [Fact] public void PlayerHasPosition()
-    {
-        var provider = GameServiceCollection.Initialize();
-
-        var state = provider.GetRequiredService<StateService>();
+        var state = this.provider.GetRequiredService<StateService>();
         
         Assert.Equal(Vector2.Zero, state.PlayerPosition);
     }
@@ -41,15 +20,14 @@ public class GameTests
     [Fact]
     public void CanMovePlayerDown()
     {
-        var provider = GameServiceCollection.Initialize();
-
-        var game = provider.GetRequiredService<GameService>();
-        var state = provider.GetRequiredService<StateService>();
+        var game = this.provider.GetRequiredService<XnaGame>();
+        var state = this.provider.GetRequiredService<StateService>();
 
         state.ControllerDirection = Vector2.UnitX;
 
         game.Tick();
 
-        Assert.True(state.PlayerPosition.X > 0);
+        if (state.PlayerPosition.X <= 0)
+            throw new AssertActualExpectedException($"> {0}", state.PlayerPosition.X, "Assert.Greater() Failure");
     }
 }
