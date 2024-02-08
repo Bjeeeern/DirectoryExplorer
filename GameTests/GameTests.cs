@@ -27,7 +27,6 @@ public class GameTests
 
         game.Tick();
 
-        if (state.PlayerPosition.X <= 0)
-            throw new AssertActualExpectedException($"> {0}", state.PlayerPosition.X, "Assert.Greater() Failure");
+        Assert.GreaterThan(0, state.PlayerPosition.X);
     }
 }
