@@ -1,17 +1,26 @@
 ﻿namespace Game.Services;
 
-internal class GameService : XnaGame
+public class GameService
 {
     private readonly StateService state;
+    private readonly XnaGameWrapperService xnaGameWrapper;
 
-    public GameService(StateService state)
+    public GameService(StateService state, XnaGameWrapperService xnaGameWrapper)
     {
-        new GraphicsDeviceManager(this);
         this.state = state;
+        this.xnaGameWrapper = xnaGameWrapper;
+
+        xnaGameWrapper.UpdateHandler = Update;
     }
 
-    protected override void Update(GameTime gameTime)
+    public void Run() =>
+        xnaGameWrapper.Run();
+
+    internal void Tick() =>
+        xnaGameWrapper.Tick();
+
+    private void Update()
     {
-        this.state.PlayerPosition = this.state.ControllerDirection;
+        state.PlayerPosition = state.ControllerDirection;
     }
 }

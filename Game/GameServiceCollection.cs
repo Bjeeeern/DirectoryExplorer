@@ -7,8 +7,15 @@ public static class GameServiceCollection
     public static IServiceProvider Initialize()
     {
         var services = new ServiceCollection()
-            .AddSingleton<XnaGame, GameService>()
-            .AddSingleton<StateService>();
+            .AddSingleton<GraphicsDeviceManager>()
+            .AddSingleton<XnaGame, XnaGameWrapperService>()
+            .AddSingleton(provider =>
+            {
+                provider.GetRequiredService<GraphicsDeviceManager>();
+                return (XnaGameWrapperService)provider.GetRequiredService<XnaGame>();
+            })
+            .AddSingleton<StateService>()
+            .AddSingleton<GameService>();
 
         return services.BuildServiceProvider();
     }
