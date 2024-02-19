@@ -2,6 +2,7 @@ namespace GameTests;
 
 public class GameTests
 {
+
     private readonly IServiceProvider provider;
 
     public GameTests()
@@ -10,24 +11,28 @@ public class GameTests
     }
 
     [Fact]
-    public void PlayerHasPosition()
-    {
-        var state = provider.GetRequiredService<StateService>();
-        
-        Assert.Equal(Vector2.Zero, state.PlayerPosition);
-    }
-
-    [Fact]
     public void CanMovePlayerDown()
     {
         var game = provider.GetRequiredService<GameService>();
         var state = provider.GetRequiredService<StateService>();
 
-        state.ControllerDirection = Vector2.UnitX;
+        state.AddScene("test", new SceneModel());
 
+        Assert.Null(state.Current);
+
+        state.LoadScene("test");
+
+        Assert.NotNull(state.Current);
+        Assert.Equal(Vector2.Zero, state.Current.PlayerPosition);
+
+        state.Current.ControllerDirection = Vector2.UnitX;
         game.Tick();
 
-        Assert.GreaterThan(0, state.PlayerPosition.X);
+        Assert.GreaterThan(0, state.Current.PlayerPosition.X);
+
+        state.LoadScene("test");
+
+        Assert.Equal(Vector2.Zero, state.Current.PlayerPosition);
     }
 
     [Fact]
