@@ -21,6 +21,6 @@ public class GameService
 
     private void Update()
     {
-        state.PlayerPosition = state.ControllerDirection;
+        state.Current.Player.Position = state.Current.ControllerDirection;
     }
 }
