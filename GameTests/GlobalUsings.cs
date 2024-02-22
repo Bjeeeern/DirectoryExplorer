@@ -1,7 +1,7 @@
 global using Game;
 global using Game.Services;
 global using Game.Models;
+global using Game.Extensions;
 global using Microsoft.Extensions.DependencyInjection;
 global using Xunit;
 global using Microsoft.Xna.Framework;
-global using XnaGame = Microsoft.Xna.Framework.Game;
