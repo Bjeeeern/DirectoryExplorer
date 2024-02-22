@@ -13,8 +13,11 @@ public class GameService
         xnaGameWrapper.UpdateHandler = Update;
     }
 
-    public void Run() =>
-        xnaGameWrapper.Run();
+    public Task RunAsync() =>
+        new(xnaGameWrapper.Run);
+
+    internal void Stop() =>
+        xnaGameWrapper.Exit();
 
     internal void Tick() =>
         xnaGameWrapper.Tick();

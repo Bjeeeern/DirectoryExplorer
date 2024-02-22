@@ -1,4 +1,4 @@
 ﻿ApplicationConfiguration.Initialize();
-GameServiceCollection.Initialize()
+await GameServiceCollection.Initialize()
     .GetRequiredService<GameService>()
-    .Run();
+    .RunAsync();
