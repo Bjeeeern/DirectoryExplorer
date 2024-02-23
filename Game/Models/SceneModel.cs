@@ -8,6 +8,8 @@ internal class SceneModel
 
     internal class EntityModel
     {
+        internal string? SpriteAsset { get; set; }
+
         internal Vector2 Position { get; set; }
     }
 }

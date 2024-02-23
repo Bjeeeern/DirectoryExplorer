@@ -11,6 +11,12 @@
           "Microsoft.Extensions.DependencyInjection.Abstractions": "8.0.0"
         }
       },
+      "MonoGame.Content.Builder.Task": {
+        "type": "Direct",
+        "requested": "[3.8.1.303, )",
+        "resolved": "3.8.1.303",
+        "contentHash": "9Ilzzje62LhWElbPNEl7vh7XsRSbze+lvCJdZtTZUGu48FRgvYN6THURwIB9PN98EI33/Wnf6iuShNUtD7hL4Q=="
+      },
       "MonoGame.Extended": {
         "type": "Direct",
         "requested": "[3.8.0, )",
